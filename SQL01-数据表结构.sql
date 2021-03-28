@@ -11,11 +11,164 @@
  Target Server Version : 50562
  File Encoding         : 65001
 
- Date: 23/03/2021 18:25:46
+ Date: 27/03/2021 14:30:02
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for data_base_discount
+-- ----------------------------
+DROP TABLE IF EXISTS `data_base_discount`;
+CREATE TABLE `data_base_discount`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '方案名称',
+  `items` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '方案规则',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '方案描述',
+  `sort` bigint(20) NULL DEFAULT 0 COMMENT '排序权重',
+  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '方案状态(1使用,0禁用)',
+  `deleted` tinyint(1) NULL DEFAULT 0 COMMENT '删除状态',
+  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_data_base_discount_status`(`status`) USING BTREE,
+  INDEX `idx_data_base_discount_deleted`(`deleted`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-基础-折扣' ROW_FORMAT = Compact;
+
+-- ----------------------------
+-- Table structure for data_base_message
+-- ----------------------------
+DROP TABLE IF EXISTS `data_base_message`;
+CREATE TABLE `data_base_message`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '消息类型',
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '消息名称',
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '消息内容',
+  `num_read` bigint(20) NULL DEFAULT 0 COMMENT '阅读次数',
+  `sort` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '排序权重',
+  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '消息状态(1使用,0禁用)',
+  `deleted` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '删除状态',
+  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_data_base_message_type`(`type`) USING BTREE,
+  INDEX `idx_data_base_message_status`(`status`) USING BTREE,
+  INDEX `idx_data_base_message_deleted`(`deleted`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-基础-通知' ROW_FORMAT = COMPACT;
+
+-- ----------------------------
+-- Table structure for data_base_payment
+-- ----------------------------
+DROP TABLE IF EXISTS `data_base_payment`;
+CREATE TABLE `data_base_payment`  (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付类型',
+  `code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '通道编号',
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付名称',
+  `cover` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付图标',
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '支付参数',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付说明',
+  `sort` bigint(20) NULL DEFAULT 0 COMMENT '排序权重',
+  `status` tinyint(1) NULL DEFAULT 1 COMMENT '支付状态(1使用,0禁用)',
+  `deleted` tinyint(1) NULL DEFAULT 0 COMMENT '删除状态',
+  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_data_base_payment_type`(`type`) USING BTREE,
+  INDEX `idx_data_base_payment_code`(`code`) USING BTREE,
+  INDEX `idx_data_base_payment_status`(`status`) USING BTREE,
+  INDEX `idx_data_base_payment_deleted`(`deleted`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-基础-支付' ROW_FORMAT = COMPACT;
+
+-- ----------------------------
+-- Table structure for data_base_postage_company
+-- ----------------------------
+DROP TABLE IF EXISTS `data_base_postage_company`;
+CREATE TABLE `data_base_postage_company`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '快递公司名称',
+  `code_1` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '快递公司代码',
+  `code_2` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '百度快递100代码',
+  `code_3` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '官方快递100代码',
+  `remark` varchar(512) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '快递公司描述',
+  `sort` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '排序权重',
+  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '状态(0.无效,1.有效)',
+  `deleted` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '删除状态(1已删除,0未删除)',
+  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_data_base_postage_company_code1`(`code_1`) USING BTREE,
+  INDEX `idx_data_base_postage_company_code2`(`code_2`) USING BTREE,
+  INDEX `idx_data_base_postage_company_code3`(`code_3`) USING BTREE,
+  INDEX `idx_data_base_postage_company_status`(`status`) USING BTREE,
+  INDEX `idx_data_base_postage_company_deleted`(`deleted`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '数据-快递-公司' ROW_FORMAT = COMPACT;
+
+-- ----------------------------
+-- Table structure for data_base_postage_region
+-- ----------------------------
+DROP TABLE IF EXISTS `data_base_postage_region`;
+CREATE TABLE `data_base_postage_region`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `pid` int(11) UNSIGNED NULL DEFAULT 0 COMMENT '上级PID',
+  `first` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '首字母',
+  `short` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '区域简称',
+  `name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '区域名称',
+  `level` tinyint(4) NULL DEFAULT 0 COMMENT '区域层级',
+  `pinyin` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '区域拼音',
+  `code` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '区域邮编',
+  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '使用状态',
+  `lng` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '所在经度',
+  `lat` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '所在纬度',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_data_base_postage_region_pid`(`pid`) USING BTREE,
+  INDEX `idx_data_base_postage_region_name`(`name`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 4019 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '数据-快递-区域' ROW_FORMAT = Compact;
+
+-- ----------------------------
+-- Table structure for data_base_postage_template
+-- ----------------------------
+DROP TABLE IF EXISTS `data_base_postage_template`;
+CREATE TABLE `data_base_postage_template`  (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '模板编号',
+  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '模板名称',
+  `normal` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '默认规则',
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '模板规则',
+  `sort` bigint(20) NULL DEFAULT 0 COMMENT '排序权重',
+  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '模板状态',
+  `deleted` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '删除状态',
+  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_data_base_postage_template_code`(`code`) USING BTREE,
+  INDEX `idx_data_base_postage_template_status`(`status`) USING BTREE,
+  INDEX `idx_data_base_postage_template_deleted`(`deleted`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-快递-模板' ROW_FORMAT = COMPACT;
+
+-- ----------------------------
+-- Table structure for data_base_upgrade
+-- ----------------------------
+DROP TABLE IF EXISTS `data_base_upgrade`;
+CREATE TABLE `data_base_upgrade`  (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '用户级别名称',
+  `number` tinyint(2) NULL DEFAULT 0 COMMENT '用户级别序号',
+  `rebate_rule` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '用户奖利规则',
+  `upgrade_type` tinyint(1) NULL DEFAULT 0 COMMENT '会员升级规则(0单个,1同时)',
+  `goods_vip_status` tinyint(1) NULL DEFAULT 0 COMMENT '入会礼包状态',
+  `order_amount_status` tinyint(1) NULL DEFAULT 0 COMMENT '订单金额状态',
+  `order_amount_number` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '订单金额累计',
+  `teams_users_status` tinyint(1) NULL DEFAULT 0 COMMENT '团队人数状态',
+  `teams_users_number` bigint(20) NULL DEFAULT 0 COMMENT '团队人数累计',
+  `teams_direct_status` tinyint(1) NULL DEFAULT 0 COMMENT '直推人数状态',
+  `teams_direct_number` bigint(20) NULL DEFAULT 0 COMMENT '直推人数累计',
+  `teams_indirect_status` tinyint(1) NULL DEFAULT 0 COMMENT '间推人数状态',
+  `teams_indirect_number` bigint(20) NULL DEFAULT 0 COMMENT '间推人数累计',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '用户级别描述',
+  `utime` bigint(20) NULL DEFAULT 0 COMMENT '等级更新时间',
+  `status` tinyint(1) NULL DEFAULT 1 COMMENT '用户等级状态(1使用,0禁用)',
+  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '等级创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_data_base_upgrade_status`(`status`) USING BTREE,
+  INDEX `idx_data_base_upgrade_number`(`number`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-等级' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for data_news_item
@@ -139,7 +292,7 @@ CREATE TABLE `data_user`  (
   INDEX `idx_data_user_openid1`(`openid1`) USING BTREE,
   INDEX `idx_data_user_openid2`(`openid2`) USING BTREE,
   INDEX `idx_data_user_unionid`(`unionid`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-会员' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-会员' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for data_user_address
@@ -153,6 +306,8 @@ CREATE TABLE `data_user_address`  (
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '收货姓名',
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '收货手机',
   `idcode` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '身体证号',
+  `idimg1` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '身份证正面',
+  `idimg2` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '身份证反面',
   `province` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '地址-省份',
   `city` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '地址-城市',
   `area` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '地址-区域',
@@ -185,25 +340,7 @@ CREATE TABLE `data_user_balance`  (
   INDEX `idx_data_user_balance_uid`(`uid`) USING BTREE,
   INDEX `idx_data_user_balance_code`(`code`) USING BTREE,
   INDEX `idx_data_user_balance_deleted`(`deleted`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 62 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-余额' ROW_FORMAT = COMPACT;
-
--- ----------------------------
--- Table structure for data_user_discount
--- ----------------------------
-DROP TABLE IF EXISTS `data_user_discount`;
-CREATE TABLE `data_user_discount`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '方案名称',
-  `items` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '方案规则',
-  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '方案描述',
-  `sort` bigint(20) NULL DEFAULT 0 COMMENT '排序权重',
-  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '方案状态(1使用,0禁用)',
-  `deleted` tinyint(1) NULL DEFAULT 0 COMMENT '删除状态',
-  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_data_user_discount_status`(`status`) USING BTREE,
-  INDEX `idx_data_user_discount_deleted`(`deleted`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-折扣' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 29 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-余额' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for data_user_message
@@ -227,23 +364,28 @@ CREATE TABLE `data_user_message`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-短信' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
--- Table structure for data_user_notify
+-- Table structure for data_user_payment
 -- ----------------------------
-DROP TABLE IF EXISTS `data_user_notify`;
-CREATE TABLE `data_user_notify`  (
+DROP TABLE IF EXISTS `data_user_payment`;
+CREATE TABLE `data_user_payment`  (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '消息类型',
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '消息名称',
-  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '消息内容',
-  `sort` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '排序权重',
-  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '消息状态(1使用,0禁用)',
-  `deleted` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '删除状态',
+  `order_no` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单单号',
+  `order_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单描述',
+  `order_amount` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '订单金额',
+  `payment_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付编号',
+  `payment_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付通道',
+  `payment_trade` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付单号',
+  `payment_status` tinyint(1) NULL DEFAULT 0 COMMENT '支付状态',
+  `payment_amount` decimal(20, 2) NULL DEFAULT NULL COMMENT '支付金额',
+  `payment_datatime` datetime NULL DEFAULT NULL COMMENT '支付时间',
   `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_data_user_notify_type`(`type`) USING BTREE,
-  INDEX `idx_data_user_notify_status`(`status`) USING BTREE,
-  INDEX `idx_data_user_notify_deleted`(`deleted`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-通知' ROW_FORMAT = COMPACT;
+  INDEX `idx_data_user_payment_order_no`(`order_no`) USING BTREE,
+  INDEX `idx_data_user_payment_payment_code`(`payment_code`) USING BTREE,
+  INDEX `idx_data_user_payment_payment_type`(`payment_type`) USING BTREE,
+  INDEX `idx_data_user_payment_payment_trade`(`payment_trade`) USING BTREE,
+  INDEX `idx_data_user_payment_payment_status`(`payment_status`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-基础-支付' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for data_user_rebate
@@ -270,7 +412,7 @@ CREATE TABLE `data_user_rebate`  (
   INDEX `idx_data_user_rebate_code`(`code`) USING BTREE,
   INDEX `idx_data_user_rebate_name`(`name`) USING BTREE,
   INDEX `idx_data_user_rebate_status`(`status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '数据-用户-返利' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 53 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '数据-用户-返利' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for data_user_token
@@ -288,7 +430,7 @@ CREATE TABLE `data_user_token`  (
   INDEX `idx_data_user_token_type`(`type`) USING BTREE,
   INDEX `idx_data_user_token_time`(`time`) USING BTREE,
   INDEX `idx_data_user_token_token`(`token`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 163 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-认证' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 43 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-认证' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for data_user_transfer
@@ -332,35 +474,7 @@ CREATE TABLE `data_user_transfer`  (
   INDEX `idx_data_user_transfer_appid`(`appid`) USING BTREE,
   INDEX `idx_data_user_transfer_openid`(`openid`) USING BTREE,
   INDEX `idx_data_user_transfer_audit_status`(`audit_status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '数据-用户-提现' ROW_FORMAT = Compact;
-
--- ----------------------------
--- Table structure for data_user_upgrade
--- ----------------------------
-DROP TABLE IF EXISTS `data_user_upgrade`;
-CREATE TABLE `data_user_upgrade`  (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '用户级别名称',
-  `number` tinyint(2) NULL DEFAULT 0 COMMENT '用户级别序号',
-  `rebate_rule` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '用户奖利规则',
-  `upgrade_type` tinyint(1) NULL DEFAULT 0 COMMENT '会员升级规则(0单个,1同时)',
-  `goods_vip_status` tinyint(1) NULL DEFAULT 0 COMMENT '入会礼包状态',
-  `order_amount_status` tinyint(1) NULL DEFAULT 0 COMMENT '订单金额状态',
-  `order_amount_number` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '订单金额累计',
-  `teams_users_status` tinyint(1) NULL DEFAULT 0 COMMENT '团队人数状态',
-  `teams_users_number` bigint(20) NULL DEFAULT 0 COMMENT '团队人数累计',
-  `teams_direct_status` tinyint(1) NULL DEFAULT 0 COMMENT '直推人数状态',
-  `teams_direct_number` bigint(20) NULL DEFAULT 0 COMMENT '直推人数累计',
-  `teams_indirect_status` tinyint(1) NULL DEFAULT 0 COMMENT '间推人数状态',
-  `teams_indirect_number` bigint(20) NULL DEFAULT 0 COMMENT '间推人数累计',
-  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '用户级别描述',
-  `utime` bigint(20) NULL DEFAULT 0 COMMENT '等级更新时间',
-  `status` tinyint(1) NULL DEFAULT 1 COMMENT '用户等级状态(1使用,0禁用)',
-  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '等级创建时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_data_user_upgrade_status`(`status`) USING BTREE,
-  INDEX `idx_data_user_upgrade_number`(`number`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据-用户-等级' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '数据-用户-提现' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Table structure for shop_goods
@@ -404,7 +518,7 @@ CREATE TABLE `shop_goods`  (
   INDEX `idx_shop_goods_cate`(`cateids`(191)) USING BTREE,
   INDEX `idx_shop_goods_status`(`status`) USING BTREE,
   INDEX `idx_shop_goods_deleted`(`deleted`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-商品-内容' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-商品-内容' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for shop_goods_cate
@@ -449,7 +563,7 @@ CREATE TABLE `shop_goods_item`  (
   INDEX `index_store_goods_item_code`(`goods_code`) USING BTREE,
   INDEX `index_store_goods_item_spec`(`goods_spec`) USING BTREE,
   INDEX `index_store_goods_item_status`(`status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '商城-商品-规格' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '商城-商品-规格' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for shop_goods_mark
@@ -483,7 +597,7 @@ CREATE TABLE `shop_goods_stock`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_shop_goods_stock_status`(`status`) USING BTREE,
   INDEX `idx_shop_goods_stock_deleted`(`deleted`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-商品-库存' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-商品-库存' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for shop_order
@@ -491,18 +605,16 @@ CREATE TABLE `shop_goods_stock`  (
 DROP TABLE IF EXISTS `shop_order`;
 CREATE TABLE `shop_order`  (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `uid` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '用户编号',
-  `puid1` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '推荐用户1',
-  `puid2` bigint(20) NULL DEFAULT 0 COMMENT '推荐用户2',
-  `order_no` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单编号',
+  `uid` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '下单用户编号',
+  `puid1` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '推荐一层用户',
+  `puid2` bigint(20) NULL DEFAULT 0 COMMENT '推荐二层用户',
+  `order_no` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商品订单单号',
   `amount_real` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '订单实际金额',
   `amount_total` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '订单统计金额',
   `amount_goods` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '商品统计金额',
   `amount_reduct` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '随机减免金额',
   `amount_express` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '快递费用金额',
   `amount_discount` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '折扣后的金额',
-  `rebate_amount` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '参与返利金额',
-  `reward_balance` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '奖励账户余额',
   `payment_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '实际支付平台',
   `payment_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '实际通道编号',
   `payment_allow` varchar(999) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '允许支付通道',
@@ -515,7 +627,9 @@ CREATE TABLE `shop_order`  (
   `payment_datetime` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付到账时间',
   `number_goods` bigint(20) NULL DEFAULT 0 COMMENT '订单商品数量',
   `number_express` bigint(20) NULL DEFAULT 0 COMMENT '订单快递计数',
-  `truck_type` tinyint(1) NULL DEFAULT 0 COMMENT '物流配送(0无需配送,1需要配送)',
+  `truck_type` tinyint(1) NULL DEFAULT 0 COMMENT '物流配送类型(0无需配送,1需要配送)',
+  `rebate_amount` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '参与返利金额',
+  `reward_balance` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '奖励账户余额',
   `order_remark` varchar(999) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单用户备注',
   `cancel_status` tinyint(1) NULL DEFAULT 0 COMMENT '订单取消状态',
   `cancel_remark` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单取消描述',
@@ -523,8 +637,8 @@ CREATE TABLE `shop_order`  (
   `deleted_status` tinyint(1) NULL DEFAULT 0 COMMENT '订单删除状态(0未删,1已删)',
   `deleted_remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单删除描述',
   `deleted_datetime` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单删除时间',
-  `status` tinyint(1) NULL DEFAULT 1 COMMENT '订单状态(0已取消,1预订单,2待支付,3支付中,4已支付,5已发货,6已完成)',
-  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `status` tinyint(1) NULL DEFAULT 1 COMMENT '订单流程状态(0已取消,1预订单,2待支付,3支付中,4已支付,5已发货,6已完成)',
+  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '订单创建时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_shop_order_mid`(`uid`) USING BTREE,
   INDEX `idx_shop_order_from`(`puid1`) USING BTREE,
@@ -533,7 +647,7 @@ CREATE TABLE `shop_order`  (
   INDEX `idx_shop_order_orderno`(`order_no`) USING BTREE,
   INDEX `idx_shop_order_cancel_status`(`cancel_status`) USING BTREE,
   INDEX `idx_shop_order_payment_status`(`payment_status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 99 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-订单-内容' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 47 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-订单-内容' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for shop_order_item
@@ -541,21 +655,21 @@ CREATE TABLE `shop_order`  (
 DROP TABLE IF EXISTS `shop_order_item`;
 CREATE TABLE `shop_order_item`  (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `uid` bigint(20) NULL DEFAULT 0 COMMENT '用户编号',
-  `order_no` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单单号',
-  `goods_sku` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商品SKU',
-  `goods_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商品编号',
-  `goods_spec` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商品规格',
-  `goods_name` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商品名称',
-  `goods_cover` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商品图片',
-  `goods_payment` varchar(999) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付通道',
-  `price_market` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '市场单价',
-  `price_selling` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '销售单价',
-  `total_market` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '市场总价',
-  `total_selling` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '销售总价',
-  `reward_balance` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '奖励余额',
-  `reward_integral` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '奖励积分',
-  `stock_sales` bigint(20) NULL DEFAULT 1 COMMENT '商品数量',
+  `uid` bigint(20) NULL DEFAULT 0 COMMENT '商城用户编号',
+  `order_no` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商城订单单号',
+  `goods_sku` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商城商品SKU',
+  `goods_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商城商品编号',
+  `goods_spec` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商城商品规格',
+  `goods_name` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商城商品名称',
+  `goods_cover` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商品封面图片',
+  `goods_payment` varchar(999) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '指定支付通道',
+  `price_market` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '商品市场单价',
+  `price_selling` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '商品销售单价',
+  `total_market` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '商品市场总价',
+  `total_selling` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '商品销售总价',
+  `reward_balance` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '商品奖励余额',
+  `reward_integral` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '商品奖励积分',
+  `stock_sales` bigint(20) NULL DEFAULT 1 COMMENT '包含商品数量',
   `vip_name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '用户等级名称',
   `vip_code` bigint(20) NULL DEFAULT 0 COMMENT '用户等级序号',
   `vip_entry` tinyint(1) NULL DEFAULT 0 COMMENT '是否入会礼包(0非礼包,1是礼包)',
@@ -570,7 +684,7 @@ CREATE TABLE `shop_order_item`  (
   `discount_amount` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '商品优惠金额',
   `status` tinyint(1) NULL DEFAULT 1 COMMENT '商品状态(1使用,0禁用)',
   `deleted` tinyint(1) NULL DEFAULT 0 COMMENT '删除状态(0未删,1已删)',
-  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '订单创建时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_shop_order_item_status`(`status`) USING BTREE,
   INDEX `idx_shop_order_item_deleted`(`deleted`) USING BTREE,
@@ -579,7 +693,7 @@ CREATE TABLE `shop_order_item`  (
   INDEX `idx_shop_order_item_goods_code`(`goods_code`) USING BTREE,
   INDEX `idx_shop_order_item_goods_spec`(`goods_spec`) USING BTREE,
   INDEX `idx_shop_order_item_rebate_type`(`rebate_type`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 99 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-订单-商品' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 47 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-订单-商品' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for shop_order_send
@@ -587,12 +701,14 @@ CREATE TABLE `shop_order_item`  (
 DROP TABLE IF EXISTS `shop_order_send`;
 CREATE TABLE `shop_order_send`  (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `uid` bigint(20) NULL DEFAULT 0 COMMENT '用户编号',
-  `order_no` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单订单',
+  `uid` bigint(20) NULL DEFAULT 0 COMMENT '商城用户编号',
+  `order_no` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '商城订单单号',
   `address_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送地址编号',
   `address_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送收货人姓名',
   `address_phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送收货人手机',
-  `address_idcode` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送收货人证件',
+  `address_idcode` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送收货人证件号码',
+  `address_idimg1` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送收货人证件正面',
+  `address_idimg2` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送收货人证件反面',
   `address_province` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送地址的省份',
   `address_city` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送地址的城市',
   `address_area` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '配送地址的区域',
@@ -607,123 +723,15 @@ CREATE TABLE `shop_order_send`  (
   `send_number` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '快递运送单号',
   `send_remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '快递发送备注',
   `send_datetime` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '快递发送时间',
-  `status` tinyint(1) NULL DEFAULT 1 COMMENT '商品状态(1使用,0禁用)',
-  `deleted` tinyint(1) NULL DEFAULT 0 COMMENT '删除状态(0未删,1已删)',
+  `status` tinyint(1) NULL DEFAULT 1 COMMENT '发货商品状态(1使用,0禁用)',
+  `deleted` tinyint(1) NULL DEFAULT 0 COMMENT '发货删除状态(0未删,1已删)',
   `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_shop_order_send_mid`(`uid`) USING BTREE,
   INDEX `idx_shop_order_send_status`(`status`) USING BTREE,
   INDEX `idx_shop_order_send_deleted`(`deleted`) USING BTREE,
   INDEX `idx_shop_order_send_order_no`(`order_no`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-订单-配送' ROW_FORMAT = COMPACT;
-
--- ----------------------------
--- Table structure for shop_payment
--- ----------------------------
-DROP TABLE IF EXISTS `shop_payment`;
-CREATE TABLE `shop_payment`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付类型',
-  `code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '通道编号',
-  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付名称',
-  `cover` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付图标',
-  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '支付参数',
-  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付说明',
-  `sort` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '排序权重',
-  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '支付状态(1使用,0禁用)',
-  `deleted` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '删除状态',
-  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_shop_payment_type`(`type`) USING BTREE,
-  INDEX `idx_shop_payment_code`(`code`) USING BTREE,
-  INDEX `idx_shop_payment_status`(`status`) USING BTREE,
-  INDEX `idx_shop_payment_deleted`(`deleted`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-支付-方式' ROW_FORMAT = COMPACT;
-
--- ----------------------------
--- Table structure for shop_payment_item
--- ----------------------------
-DROP TABLE IF EXISTS `shop_payment_item`;
-CREATE TABLE `shop_payment_item`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `order_no` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单单号',
-  `order_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '订单描述',
-  `order_amount` decimal(20, 2) NULL DEFAULT 0.00 COMMENT '订单金额',
-  `payment_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付编号',
-  `payment_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付通道',
-  `payment_trade` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '支付单号',
-  `payment_status` tinyint(1) NULL DEFAULT 0 COMMENT '支付状态',
-  `payment_amount` decimal(20, 2) NULL DEFAULT NULL COMMENT '支付金额',
-  `payment_datatime` datetime NULL DEFAULT NULL COMMENT '支付时间',
-  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_shop_payment_item_order_no`(`order_no`) USING BTREE,
-  INDEX `idx_shop_payment_item_payment_code`(`payment_code`) USING BTREE,
-  INDEX `idx_shop_payment_item_payment_type`(`payment_type`) USING BTREE,
-  INDEX `idx_shop_payment_item_payment_trade`(`payment_trade`) USING BTREE,
-  INDEX `idx_shop_payment_item_payment_status`(`payment_status`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 71 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-支付-记录' ROW_FORMAT = COMPACT;
-
--- ----------------------------
--- Table structure for shop_truck_company
--- ----------------------------
-DROP TABLE IF EXISTS `shop_truck_company`;
-CREATE TABLE `shop_truck_company`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '快递公司名称',
-  `code_1` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '快递公司代码',
-  `code_2` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '百度快递100代码',
-  `code_3` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '官方快递100代码',
-  `remark` varchar(512) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '快递公司描述',
-  `sort` bigint(20) UNSIGNED NULL DEFAULT 0 COMMENT '排序权重',
-  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '状态(0.无效,1.有效)',
-  `deleted` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '删除状态(1已删除,0未删除)',
-  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_shop_truck_company_code1`(`code_1`) USING BTREE,
-  INDEX `idx_shop_truck_company_code2`(`code_2`) USING BTREE,
-  INDEX `idx_shop_truck_company_code3`(`code_3`) USING BTREE,
-  INDEX `idx_shop_truck_company_status`(`status`) USING BTREE,
-  INDEX `idx_shop_truck_company_deleted`(`deleted`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '商城-快递-公司' ROW_FORMAT = COMPACT;
-
--- ----------------------------
--- Table structure for shop_truck_region
--- ----------------------------
-DROP TABLE IF EXISTS `shop_truck_region`;
-CREATE TABLE `shop_truck_region`  (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `pid` int(11) UNSIGNED NULL DEFAULT 0 COMMENT '上级PID',
-  `first` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '首字母',
-  `short` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '区域简称',
-  `name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '区域名称',
-  `level` tinyint(4) NULL DEFAULT 0 COMMENT '区域层级',
-  `pinyin` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '区域拼音',
-  `code` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '区域邮编',
-  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '使用状态',
-  `lng` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '所在经度',
-  `lat` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '' COMMENT '所在纬度',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_shop_truck_region_pid`(`pid`) USING BTREE,
-  INDEX `idx_shop_truck_region_name`(`name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4019 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '商城-快递-区域' ROW_FORMAT = Compact;
-
--- ----------------------------
--- Table structure for shop_truck_template
--- ----------------------------
-DROP TABLE IF EXISTS `shop_truck_template`;
-CREATE TABLE `shop_truck_template`  (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '模板编号',
-  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT '' COMMENT '模板名称',
-  `normal` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '默认规则',
-  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '模板规则',
-  `sort` bigint(20) NULL DEFAULT 0 COMMENT '排序权重',
-  `status` tinyint(1) UNSIGNED NULL DEFAULT 1 COMMENT '模板状态',
-  `deleted` tinyint(1) UNSIGNED NULL DEFAULT 0 COMMENT '删除状态',
-  `create_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-快递-模板' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 28 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '商城-订单-配送' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for system_auth
@@ -752,7 +760,7 @@ CREATE TABLE `system_auth_node`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_system_auth_auth`(`auth`) USING BTREE,
   INDEX `idx_system_auth_node`(`node`(191)) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统-授权' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 107 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统-授权' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for system_config
@@ -813,7 +821,7 @@ CREATE TABLE `system_oplog`  (
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '操作人用户名',
   `create_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 98 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统-日志' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 198 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统-日志' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for system_queue
@@ -842,7 +850,7 @@ CREATE TABLE `system_queue`  (
   INDEX `idx_system_queue_rscript`(`rscript`) USING BTREE,
   INDEX `idx_system_queue_create_at`(`create_at`) USING BTREE,
   INDEX `idx_system_queue_exec_time`(`exec_time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统-任务' ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 34 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统-任务' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for system_user

@@ -14,12 +14,14 @@ class GoodsService extends Service
 {
 
     /**
-     * 最大分类级别
-     * @return integer
+     * 获取商品标签数据
+     * @return array
      */
-    public function getCateMax(): int
+    public function getMarkData(): array
     {
-        return 3;
+        $map = ['status' => 1];
+        $query = $this->app->db->name('ShopGoodsMark');
+        return $query->where($map)->order('sort desc,id desc')->column('name');
     }
 
     /**
@@ -65,14 +67,12 @@ class GoodsService extends Service
     }
 
     /**
-     * 获取商品标签数据
-     * @return array
+     * 最大分类等级
+     * @return integer
      */
-    public function getMarkData(): array
+    public function getCateMax(): int
     {
-        $map = ['status' => 1];
-        $query = $this->app->db->name('ShopGoodsMark');
-        return $query->where($map)->order('sort desc,id desc')->column('name');
+        return 3;
     }
 
     /**

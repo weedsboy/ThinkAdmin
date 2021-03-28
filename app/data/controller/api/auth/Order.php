@@ -257,14 +257,21 @@ class Order extends Auth
         ];
         $express['order_no'] = $data['order_no'];
         $express['address_code'] = $data['code'];
+        $express['address_datetime'] = date('Y-m-d H:i:s');
+
+        // 收货人信息
         $express['address_name'] = $addr['name'];
         $express['address_phone'] = $addr['phone'];
         $express['address_idcode'] = $addr['idcode'];
+        $express['address_idimg1'] = $addr['idimg1'];
+        $express['address_idimg2'] = $addr['idimg2'];
+
+        // 收货地址信息
         $express['address_province'] = $addr['province'];
         $express['address_city'] = $addr['city'];
         $express['address_area'] = $addr['area'];
         $express['address_content'] = $addr['address'];
-        $express['address_datetime'] = date('Y-m-d H:i:s');
+
         data_save('ShopOrderSend', $express, 'order_no');
         // 组装更新订单数据
         $update = ['status' => 2, 'amount_express' => $express['template_amount']];
@@ -299,7 +306,7 @@ class Order extends Auth
         if (empty($payments)) $this->error('获取订单支付参数失败');
         [$map, $types] = [['status' => 1, 'deleted' => 0], []];
         foreach (PaymentService::TYPES as $type => $arr) if (in_array($this->type, $arr['bind'])) $types[] = $type;
-        $query = $this->app->db->name('ShopPayment')->where($map)->whereIn('type', $types)->whereIn('code', str2arr($payments));
+        $query = $this->app->db->name('DataBasePayment')->where($map)->whereIn('type', $types)->whereIn('code', str2arr($payments));
         $this->success('获取支付参数数据', $query->order('sort desc,id desc')->field('type,code,name,cover')->select()->toArray());
     }
 

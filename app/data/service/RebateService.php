@@ -63,31 +63,6 @@ class RebateService extends Service
     private $table = 'DataUserRebate';
 
     /**
-     * 返利服务初始化
-     * @return void
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\DbException
-     * @throws \think\db\exception\ModelNotFoundException
-     */
-    protected function initialize()
-    {
-        // 返利奖励到账时机
-        // settl_type 为 1 支付后立即到账
-        // settl_type 为 2 确认后立即到账
-        $this->status = $this->config('settl_type') > 1 ? 0 : 1;
-    }
-
-    /**
-     * 获取奖励名称
-     * @param string $prize
-     * @return string
-     */
-    public function name(string $prize): string
-    {
-        return self::PRIZES[$prize]['name'] ?? $prize;
-    }
-
-    /**
      * 执行订单返利处理
      * @param string $orderNo
      * @throws Exception
@@ -131,6 +106,36 @@ class RebateService extends Service
     }
 
     /**
+     * 返利服务初始化
+     * @return void
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     */
+    protected function initialize()
+    {
+        // 返利奖励到账时机
+        // settl_type 为 1 支付后立即到账
+        // settl_type 为 2 确认后立即到账
+        $this->status = $this->config('settl_type') > 1 ? 0 : 1;
+    }
+
+    /**
+     * 获取配置数据
+     * @param ?string $name 配置名称
+     * @return array|string
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     */
+    public function config(?string $name = null)
+    {
+        static $data = [];
+        if (empty($data)) $data = sysdata('RebateRule');
+        return is_null($name) ? $data : ($data[$name] ?? '');
+    }
+
+    /**
      * 用户首推奖励
      * @return boolean
      * @throws \think\db\exception\DataNotFoundException
@@ -159,6 +164,53 @@ class RebateService extends Service
             $this->addRebateRecord($this->from1['id'], $map, $name, $val);
         }
         return true;
+    }
+
+    /**
+     * 检查等级是否有奖励
+     * @param string $prize 奖励规则
+     * @param integer $level 用户等级
+     * @return boolean
+     */
+    private function isPrizeStatus(string $prize, int $level): bool
+    {
+        $map = [['number', '=', $level], ['rebate_rule', 'like', "%,{$prize},%"]];
+        return $this->app->db->name('DataBaseUpgrade')->where($map)->count() > 0;
+    }
+
+    /**
+     * 获取奖励名称
+     * @param string $prize
+     * @return string
+     */
+    public function name(string $prize): string
+    {
+        return self::PRIZES[$prize]['name'] ?? $prize;
+    }
+
+    /**
+     * 写返利记录
+     * @param int $uid
+     * @param array $map
+     * @param string $name
+     * @param float $amount
+     * @throws \think\db\exception\DbException
+     */
+    private function addRebateRecord(int $uid, array $map, string $name, float $amount)
+    {
+        $this->app->db->name($this->table)->insert(array_merge($map, [
+            'uid'          => $uid,
+            'date'         => date('Y-m-d'),
+            'code'         => CodeExtend::uniqidDate(20, 'R'),
+            'name'         => $name,
+            'amount'       => $amount,
+            'status'       => $this->status,
+            'order_no'     => $this->order['order_no'],
+            'order_uid'    => $this->order['uid'],
+            'order_amount' => $this->order['amount_total'],
+        ]));
+        // 刷新用户返利统计
+        UserRebateService::instance()->amount($uid);
     }
 
     /**
@@ -254,12 +306,12 @@ class RebateService extends Service
         $puids = array_reverse(str2arr($this->user['path'], '-'));
         if (empty($puids) || $this->order['amount_total'] <= 0) return false;
         // 获取可以参与奖励的代理
-        $vips = $this->app->db->name('DataUserUpgrade')->whereLike('rebate_rule', '%,' . self::PRIZE_05 . ',%')->column('number');
+        $vips = $this->app->db->name('DataBaseUpgrade')->whereLike('rebate_rule', '%,' . self::PRIZE_05 . ',%')->column('number');
         $users = $this->app->db->name('DataUser')->whereIn('vip_code', $vips)->whereIn('id', $puids)->orderField('id', $puids)->select()->toArray();
         // 查询需要计算奖励的商品
         $map = [['order_no', '=', $this->order['order_no']], ['discount_rate', '<', 100]];
         foreach ($this->app->db->name('ShopOrderItem')->where($map)->cursor() as $item) {
-            $itemJson = $this->app->db->name('DataUserDiscount')->where(['status' => 1, 'deleted' => 0])->value('items');
+            $itemJson = $this->app->db->name('DataBaseDiscount')->where(['status' => 1, 'deleted' => 0])->value('items');
             if (!empty($itemJson) && is_array($rules = json_decode($itemJson, true))) {
                 [$tVip, $tRate] = [$item['vip_code'], $item['discount_rate']];
                 foreach ($rules as $rule) if ($rule['level'] > $tVip) foreach ($users as $user) if ($user['vip_code'] > $tVip) {
@@ -295,7 +347,7 @@ class RebateService extends Service
         // 记录原始等级
         $prevLevel = $this->user['vip_code'];
         // 获取可以参与奖励的代理
-        $vips = $this->app->db->name('DataUserUpgrade')->whereLike('rebate_rule', '%,' . self::PRIZE_06 . ',%')->column('number');
+        $vips = $this->app->db->name('DataBaseUpgrade')->whereLike('rebate_rule', '%,' . self::PRIZE_06 . ',%')->column('number');
         foreach ($this->app->db->name('DataUser')->whereIn('vip_code', $vips)->whereIn('id', $puids)->orderField('id', $puids)->cursor() as $user) {
             if ($user['vip_code'] > $prevLevel) {
                 if (($amount = $this->_prize06amount($prevLevel + 1, $user['vip_code'])) > 0.00) {
@@ -365,57 +417,5 @@ class RebateService extends Service
             $this->addRebateRecord($this->from1['id'], $map, $name, $val);
         }
         return true;
-    }
-
-    /**
-     * 获取配置数据
-     * @param ?string $name 配置名称
-     * @return array|string
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\DbException
-     * @throws \think\db\exception\ModelNotFoundException
-     */
-    public function config(?string $name = null)
-    {
-        static $data = [];
-        if (empty($data)) $data = sysdata('RebateRule');
-        return is_null($name) ? $data : ($data[$name] ?? '');
-    }
-
-    /**
-     * 写返利记录
-     * @param int $uid
-     * @param array $map
-     * @param string $name
-     * @param float $amount
-     * @throws \think\db\exception\DbException
-     */
-    private function addRebateRecord(int $uid, array $map, string $name, float $amount)
-    {
-        $this->app->db->name($this->table)->insert(array_merge($map, [
-            'uid'          => $uid,
-            'date'         => date('Y-m-d'),
-            'code'         => CodeExtend::uniqidDate(20, 'R'),
-            'name'         => $name,
-            'amount'       => $amount,
-            'status'       => $this->status,
-            'order_no'     => $this->order['order_no'],
-            'order_uid'    => $this->order['uid'],
-            'order_amount' => $this->order['amount_total'],
-        ]));
-        // 刷新用户返利统计
-        UserRebateService::instance()->amount($uid);
-    }
-
-    /**
-     * 检查等级是否有奖励
-     * @param string $prize 奖励规则
-     * @param integer $level 用户等级
-     * @return boolean
-     */
-    private function isPrizeStatus(string $prize, int $level): bool
-    {
-        $map = [['number', '=', $level], ['rebate_rule', 'like', "%,{$prize},%"]];
-        return $this->app->db->name('DataUserUpgrade')->where($map)->count() > 0;
     }
 }

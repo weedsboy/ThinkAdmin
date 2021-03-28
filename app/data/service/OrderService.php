@@ -74,7 +74,7 @@ class OrderService extends Service
 
     /**
      * 刷新用户入会礼包
-     * @param integer $uid
+     * @param integer $uid 用户UID
      * @return integer
      * @throws \think\db\exception\DbException
      */
@@ -82,21 +82,20 @@ class OrderService extends Service
     {
         // 检查是否购买入会礼包
         $query = $this->app->db->table('shop_order a')->join('shop_order_item b', 'a.order_no=b.order_no');
-        $count = $query->where("a.uid={$uid} and a.status>=4 and a.payment_status=1 and b.vip_entry>0")->count();
-        $buyVipEntry = $count > 0 ? 1 : 0;
+        $entry = $query->where("a.uid={$uid} and a.status>=4 and a.payment_status=1 and b.vip_entry>0")->count() ? 1 : 0;
         // 用户最后支付时间
         $query = $this->app->db->name('ShopOrder');
-        $buyLastMap = [['uid', '=', $uid], ['status', '>=', 4], ['payment_status', '=', 1]];
-        $buyLastDate = $query->where($buyLastMap)->order('payment_datetime desc')->value('payment_datetime');
+        $lastMap = [['uid', '=', $uid], ['status', '>=', 4], ['payment_status', '=', 1]];
+        $lastDate = $query->where($lastMap)->order('payment_datetime desc')->value('payment_datetime');
         // 更新用户支付信息
         $this->app->db->name('DataUser')->where(['id' => $uid])->update([
-            'buy_vip_entry' => $buyVipEntry, 'buy_last_date' => $buyLastDate,
+            'buy_vip_entry' => $entry, 'buy_last_date' => $lastDate,
         ]);
-        return $buyVipEntry;
+        return $entry;
     }
 
     /**
-     * 获取级别折扣比例
+     * 获取等级折扣比例
      * @param int $disId 折扣方案ID
      * @param int $vipCode 等级序号
      * @param float $disRate 默认比例
@@ -106,7 +105,7 @@ class OrderService extends Service
     {
         if ($disId > 0) {
             $map = ['id' => $disId, 'status' => 1, 'deleted' => 0];
-            $discount = $this->app->db->name('DataUserDiscount')->where($map)->value('items');
+            $discount = $this->app->db->name('DataBaseDiscount')->where($map)->value('items');
             $disitems = json_decode($discount ?: '[]', true) ?: [];
             if (is_array($disitems) && count($disitems) > 0) foreach ($disitems as $vo) {
                 if ($vo['level'] == $vipCode) $disRate = floatval($vo['discount']);
@@ -118,14 +117,15 @@ class OrderService extends Service
     /**
      * 绑定订单详情数据
      * @param array $data
-     * @param boolean $fromer
+     * @param boolean $from
      * @return array
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
      */
-    public function buildData(array &$data = [], $fromer = true): array
+    public function buildData(array &$data = [], $from = true): array
     {
+        if (empty($data)) return $data;
         // 关联发货信息
         $nobs = array_unique(array_column($data, 'order_no'));
         $trucks = $this->app->db->name('ShopOrderSend')->whereIn('order_no', $nobs)->column('*', 'order_no');
@@ -135,8 +135,8 @@ class OrderService extends Service
         $items = $query->withoutField('id,uid,status,deleted,create_at')->whereIn('order_no', $nobs)->select()->toArray();
         // 关联用户数据
         $fields = 'phone,username,nickname,headimg,status,vip_code,vip_name';
-        UserAdminService::instance()->buildByUid($data, 'uid', 'user', $fields);
-        if ($fromer) UserAdminService::instance()->buildByUid($data, 'puid1', 'fromer', $fields);
+        if ($data) UserAdminService::instance()->buildByUid($data, 'uid', 'user', $fields);
+        if ($from) UserAdminService::instance()->buildByUid($data, 'puid1', 'from', $fields);
         foreach ($data as &$vo) {
             [$vo['sales'], $vo['truck'], $vo['items']] = [0, $trucks[$vo['order_no']] ?? [], []];
             foreach ($items as $item) if ($vo['order_no'] === $item['order_no']) {
