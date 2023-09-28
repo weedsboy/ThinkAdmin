@@ -1,26 +1,28 @@
 <?php
 
 // +----------------------------------------------------------------------
-// | ThinkAdmin
+// | Wechat Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2021 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2023 Anyon <zoujingli@qq.com>
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
 // | 开源协议 ( https://mit-license.org )
+// | 免责声明 ( https://thinkadmin.top/disclaimer )
 // +----------------------------------------------------------------------
-// | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-wechat
+// | github 代码仓库：https://github.com/zoujingli/think-plugs-wechat
 // +----------------------------------------------------------------------
 
 namespace app\wechat\controller\api;
 
+use app\wechat\model\WechatNewsArticle;
 use app\wechat\service\MediaService;
 use think\admin\Controller;
 
 /**
  * 微信图文显示
- * Class View
+ * @class View
  * @package app\wechat\controller\api
  */
 class View extends Controller
@@ -28,7 +30,7 @@ class View extends Controller
 
     /**
      * 图文列表展示
-     * @param integer $id 图文ID编号
+     * @param string|integer $id 图文ID编号
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
@@ -36,13 +38,13 @@ class View extends Controller
     public function news($id = 0)
     {
         $this->id = $id ?: input('id', 0);
-        $this->news = MediaService::instance()->news($this->id);
+        $this->news = MediaService::news($this->id);
         $this->fetch();
     }
 
     /**
      * 文章内容展示
-     * @param integer $id 文章ID编号
+     * @param string|integer $id 文章ID编号
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
@@ -50,10 +52,10 @@ class View extends Controller
     public function item($id = 0)
     {
         $map = ['id' => $id ?: input('id', 0)];
-        $this->app->db->name('WechatNewsArticle')->where($map)->update([
+        WechatNewsArticle::mk()->where($map)->update([
             'read_num' => $this->app->db->raw('read_num+1'),
         ]);
-        $this->info = $this->app->db->name('WechatNewsArticle')->where($map)->find();
+        $this->info = WechatNewsArticle::mk()->where($map)->find();
         $this->fetch();
     }
 
@@ -104,5 +106,4 @@ class View extends Controller
         $this->title = strip_tags(input('title', ''), '<a><img>');
         $this->fetch();
     }
-
 }

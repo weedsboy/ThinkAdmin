@@ -1,16 +1,17 @@
 <?php
 
 // +----------------------------------------------------------------------
-// | ThinkAdmin
+// | Wechat Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2021 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2023 Anyon <zoujingli@qq.com>
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
 // | 开源协议 ( https://mit-license.org )
+// | 免责声明 ( https://thinkadmin.top/disclaimer )
 // +----------------------------------------------------------------------
-// | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-wechat
+// | github 代码仓库：https://github.com/zoujingli/think-plugs-wechat
 // +----------------------------------------------------------------------
 
 namespace app\wechat\controller;
@@ -21,7 +22,7 @@ use think\exception\HttpResponseException;
 
 /**
  * 微信菜单管理
- * Class Menu
+ * @class Menu
  * @package app\wechat\controller
  */
 class Menu extends Controller
@@ -53,6 +54,7 @@ class Menu extends Controller
      * 微信菜单管理
      * @auth true
      * @menu true
+     * @throws \think\admin\Exception
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
@@ -77,7 +79,7 @@ class Menu extends Controller
     {
         try {
             WechatService::WeChatMenu()->delete();
-            $this->success('菜单取消成功，重新订阅可立即生效！');
+            $this->success('公众号菜单取消成功！');
         } catch (HttpResponseException $exception) {
             sysoplog('微信管理', '取消微信菜单成功');
             throw $exception;
@@ -124,12 +126,12 @@ class Menu extends Controller
      */
     private function _buildMenuData(array $list): array
     {
-        foreach ($list as $key => &$item) {
+        foreach ($list as &$item) {
             if (empty($item['sub_button'])) {
                 $item = $this->_buildMenuDataItem($item);
             } else {
                 $button = ['name' => $item['name'], 'sub_button' => []];
-                foreach ($item['sub_button'] as &$sub) {
+                foreach ($item['sub_button'] as $sub) {
                     $button['sub_button'][] = $this->_buildMenuDataItem($sub);
                 }
                 $item = $button;
@@ -152,7 +154,7 @@ class Menu extends Controller
             case 'location_select':
             case 'scancode_waitmsg':
             case 'pic_photo_or_album':
-                return ['name' => $item['name'], 'type' => $item['type'], 'key' => isset($item['key']) ? $item['key'] : $item['type']];
+                return ['name' => $item['name'], 'type' => $item['type'], 'key' => $item['key'] ?? $item['type']];
             case 'click':
                 if (empty($item['key'])) $this->error('匹配规则存在空的选项');
                 return ['name' => $item['name'], 'type' => $item['type'], 'key' => $item['key']];
@@ -164,5 +166,4 @@ class Menu extends Controller
                 return [];
         }
     }
-
 }

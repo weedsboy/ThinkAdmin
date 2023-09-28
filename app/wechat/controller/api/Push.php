@@ -1,16 +1,16 @@
 <?php
 
 // +----------------------------------------------------------------------
-// | ThinkAdmin
+// | Wechat Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2021 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2023 Anyon <zoujingli@qq.com>
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
 // | 开源协议 ( https://mit-license.org )
+// | 免责声明 ( https://thinkadmin.top/disclaimer )
 // +----------------------------------------------------------------------
-// | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-wechat
 // +----------------------------------------------------------------------
 
 namespace app\wechat\controller\api;
@@ -22,7 +22,7 @@ use think\admin\Controller;
 
 /**
  * 微信消息推送处理
- * Class Push
+ * @class Push
  * @package app\wechat\controller\api
  */
 class Push extends Controller
@@ -45,7 +45,6 @@ class Push extends Controller
      * @var boolean
      */
     protected $encrypt;
-
 
     /**
      * 请求微信 OPENID
@@ -79,9 +78,9 @@ class Push extends Controller
 
     /**
      * 获取网络出口IP
-     * @return mixed
+     * @return string
      */
-    public function geoip()
+    public function geoip(): string
     {
         return $this->request->ip();
     }
@@ -90,10 +89,10 @@ class Push extends Controller
      * 消息推送处理接口
      * @return string
      */
-    public function index()
+    public function index(): string
     {
         try {
-            if (WechatService::instance()->getType() === 'thr') {
+            if (WechatService::getType() === 'thr') {
                 $this->forceJson = true; // 直接返回JSON数据到SERVICE
                 $this->forceCustom = false; // 直接使用客服消息模式推送
                 $this->appid = $this->request->post('appid', '', null);
@@ -106,7 +105,7 @@ class Push extends Controller
             } else {
                 $this->forceJson = false; // 直接返回JSON对象数据
                 $this->forceCustom = false; // 直接使用客服消息推送
-                $this->appid = WechatService::instance()->getAppid();
+                $this->appid = WechatService::getAppid();
                 $this->wechat = WechatService::WeChatReceive();
                 $this->openid = $this->wechat->getOpenid();
                 $this->encrypt = $this->wechat->isEncrypt();
@@ -156,9 +155,10 @@ class Push extends Controller
     {
         switch (strtolower($this->receive['event'])) {
             case 'unsubscribe':
+                $this->app->event->trigger('WechatFansUnSubscribe', $this->openid);
                 return $this->_setUserInfo(false);
             case 'subscribe':
-                $this->_setUserInfo(true);
+                [$this->app->event->trigger('WechatFansSubscribe', $this->openid), $this->_setUserInfo(true)];
                 if (isset($this->receive['eventkey']) && is_string($this->receive['eventkey'])) {
                     if (($key = preg_replace('/^qrscene_/i', '', $this->receive['eventkey']))) {
                         return $this->_keys("WechatKeys#keys#{$key}", false, true);
@@ -212,24 +212,24 @@ class Push extends Controller
             case 'text':
                 return $this->_sendMessage('text', ['content' => $data['content']], $custom);
             case 'customservice':
-                return $this->_sendMessage('customservice', ['content' => $data['content']], false);
+                return $this->_sendMessage('customservice', ['content' => $data['content']]);
             case 'voice':
-                if (empty($data['voice_url']) || !($mediaId = MediaService::instance()->upload($data['voice_url'], 'voice'))) return false;
+                if (empty($data['voice_url']) || !($mediaId = MediaService::upload($data['voice_url'], 'voice'))) return false;
                 return $this->_sendMessage('voice', ['media_id' => $mediaId], $custom);
             case 'image':
-                if (empty($data['image_url']) || !($mediaId = MediaService::instance()->upload($data['image_url'], 'image'))) return false;
+                if (empty($data['image_url']) || !($mediaId = MediaService::upload($data['image_url']))) return false;
                 return $this->_sendMessage('image', ['media_id' => $mediaId], $custom);
             case 'news':
-                [$news, $articles] = [MediaService::instance()->news($data['news_id']), []];
+                [$news, $articles] = [MediaService::news($data['news_id']), []];
                 if (empty($news['articles'])) return false;
-                foreach ($news['articles'] as $vo) array_push($articles, [
+                foreach ($news['articles'] as $vo) $articles[] = [
                     'url'   => url("@wechat/api.view/item/id/{$vo['id']}", [], false, true)->build(),
                     'title' => $vo['title'], 'picurl' => $vo['local_url'], 'description' => $vo['digest'],
-                ]);
+                ];
                 return $this->_sendMessage('news', ['articles' => $articles], $custom);
             case 'music':
                 if (empty($data['music_url']) || empty($data['music_title']) || empty($data['music_desc'])) return false;
-                $mediaId = $data['music_image'] ? MediaService::instance()->upload($data['music_image'], 'image') : '';
+                $mediaId = $data['music_image'] ? MediaService::upload($data['music_image']) : '';
                 return $this->_sendMessage('music', [
                     'hqmusicurl'  => $data['music_url'], 'musicurl' => $data['music_url'],
                     'description' => $data['music_desc'], 'title' => $data['music_title'], 'thumb_media_id' => $mediaId,
@@ -237,7 +237,7 @@ class Push extends Controller
             case 'video':
                 if (empty($data['video_url']) || empty($data['video_desc']) || empty($data['video_title'])) return false;
                 $video = ['title' => $data['video_title'], 'introduction' => $data['video_desc']];
-                if (!($mediaId = MediaService::instance()->upload($data['video_url'], 'video', $video))) return false;
+                if (!($mediaId = MediaService::upload($data['video_url'], 'video', $video))) return false;
                 return $this->_sendMessage('video', ['media_id' => $mediaId, 'title' => $data['video_title'], 'description' => $data['video_desc']], $custom);
             default:
                 return false;
@@ -276,7 +276,7 @@ class Push extends Controller
                 return $this->_buildMessage($type, ['Music' => ['Title' => $data['title'], 'Description' => $data['description'], 'MusicUrl' => $data['musicurl'], 'HQMusicUrl' => $data['musicurl'], 'ThumbMediaId' => $data['thumb_media_id']]]);
             case 'customservice': // 转交客服消息
                 if ($data['content']) $this->_sendMessage('text', $data, true);
-                return $this->_buildMessage('transfer_customer_service', []);
+                return $this->_buildMessage('transfer_customer_service');
             default:
                 return 'success';
         }
@@ -299,22 +299,19 @@ class Push extends Controller
      * 同步粉丝状态
      * @param boolean $state 订阅状态
      * @return boolean
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\DbException
-     * @throws \think\db\exception\ModelNotFoundException
      */
     private function _setUserInfo(bool $state): bool
     {
         if ($state) {
             try {
                 $user = WechatService::WeChatUser()->getUserInfo($this->openid);
-                return FansService::instance()->set(array_merge($user, ['subscribe' => 1, 'appid' => $this->appid]));
+                return FansService::set(array_merge($user, ['subscribe' => 1, 'appid' => $this->appid]));
             } catch (\Exception $exception) {
                 $this->app->log->error(__METHOD__ . " {$this->openid} get userinfo faild. {$exception->getMessage()}");
                 return false;
             }
         } else {
-            return FansService::instance()->set(['subscribe' => 0, 'openid' => $this->openid, 'appid' => $this->appid]);
+            return FansService::set(['subscribe' => 0, 'openid' => $this->openid, 'appid' => $this->appid]);
         }
     }
 
@@ -325,7 +322,7 @@ class Push extends Controller
      */
     private function _arrayChangeKeyCase(array $data): array
     {
-        $data = array_change_key_case($data, CASE_LOWER);
+        $data = array_change_key_case($data);
         foreach ($data as $key => $vo) if (is_array($vo)) {
             $data[$key] = $this->_arrayChangeKeyCase($vo);
         }

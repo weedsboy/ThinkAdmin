@@ -1,16 +1,18 @@
 @charset "UTF-8";
-@import "console.dynamic.less";
+@import "_config.less";
+
 // +----------------------------------------------------------------------
-// | ThinkAdmin
+// | Static Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2021 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
-// | 官方网站: http://demo.thinkadmin.top
+// | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
 // | 开源协议 ( https://mit-license.org )
+// | 免责声明 ( https://thinkadmin.top/disclaimer )
 // +----------------------------------------------------------------------
-// | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-static
+// | github 代码仓库：https://github.com/zoujingli/think-plugs-static
 // +----------------------------------------------------------------------
 
 ::selection {
@@ -23,30 +25,16 @@
   background-color: #ec494e !important
 }
 
-::-webkit-scrollbar {
-  &-track {
-    background: #ccc !important
-  }
+::-webkit-scrollbar-track {
+  background: #ccc !important
+}
 
-  &-thumb {
-    background-color: #666 !important
-  }
+::-webkit-scrollbar-thumb {
+  background-color: #666 !important
 }
 
 ::-webkit-input-placeholder {
   color: #aaa
-}
-
-div.layui-side > div.layui-side-scroll::-webkit-scrollbar {
-  width: 3px;
-
-  &-track {
-    background: #ccc !important
-  }
-
-  &-thumb {
-    background-color: #666 !important
-  }
 }
 
 :-webkit-autofill {
@@ -76,6 +64,18 @@ body {
   }
 }
 
-@import "console.custom.less";
-@import 'console.layout.less';
-@import "console.layui.less";
+@import '_custom.less';
+@import '_display.less';
+@import '_layout.less';
+
+@import '_layout_1_red.less';
+@import '_layout_1_blue.less';
+@import '_layout_1_black.less';
+@import '_layout_1_green.less';
+
+@import '_layout_2_red.less';
+@import '_layout_2_blue.less';
+@import '_layout_2_black.less';
+@import '_layout_2_green.less';
+
+@import '_layout_white.less';

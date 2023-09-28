@@ -1,28 +1,28 @@
 <?php
 
 // +----------------------------------------------------------------------
-// | ThinkAdmin
+// | Admin Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2021 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
 // | 开源协议 ( https://mit-license.org )
+// | 免责声明 ( https://thinkadmin.top/disclaimer )
 // +----------------------------------------------------------------------
-// | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-admin
+// | github 代码仓库：https://github.com/zoujingli/think-plugs-admin
 // +----------------------------------------------------------------------
 
 namespace app\admin\controller\api;
 
 use think\admin\Controller;
 use think\admin\service\AdminService;
-use think\admin\service\SystemService;
-use think\exception\HttpResponseException;
+use think\Response;
 
 /**
- * 通用插件管理
- * Class Plugs
+ * 扩展插件管理
+ * @class Plugs
  * @package app\admin\controller\api
  */
 class Plugs extends Controller
@@ -35,27 +35,42 @@ class Plugs extends Controller
     public function icon()
     {
         $this->title = '图标选择器';
+        // 读取 layui 字体图标
+        if (empty($this->layuiIcons = $this->app->cache->get('LayuiIcons', []))) {
+            $style = file_get_contents(syspath('public/static/plugs/layui/css/layui.css'));
+            if (preg_match_all('#\.(layui-icon-[\w-]+):#', $style, $matches)) {
+                if (count($this->layuiIcons = $matches[1]) > 0) {
+                    $this->app->cache->set('LayuiIcons', $this->layuiIcons, 60);
+                }
+            }
+        }
+        // 读取自定义字体图标
+        if (empty($this->thinkIcons = $this->app->cache->get('ThinkAdminSelfIcons', []))) {
+            $style = file_get_contents(syspath('public/static/theme/css/iconfont.css'));
+            if (preg_match_all('#\.(iconfont-[\w-]+):#', $style, $matches)) {
+                if (count($this->thinkIcons = $matches[1]) > 0) {
+                    $this->app->cache->set('ThinkAdminSelfIcons', $this->thinkIcons, 60);
+                }
+            }
+        }
         $this->field = $this->app->request->get('field', 'icon');
         $this->fetch(realpath(__DIR__ . '/../../view/api/icon.html'));
     }
 
     /**
-     * 当前运行模式
-     * @login true
+     * 前端脚本变量
+     * @return \think\Response
+     * @throws \think\admin\Exception
      */
-    public function debug()
+    public function script(): Response
     {
-        if (AdminService::instance()->isSuper()) if (input('state')) {
-            SystemService::instance()->setRuntime('product');
-            sysoplog('系统运维管理', '由开发模式切换为产品模式');
-            $this->success('已切换为产品模式！');
-        } else {
-            SystemService::instance()->setRuntime('debug');
-            sysoplog('系统运维管理', '由产品模式切换为开发模式');
-            $this->success('已切换为开发模式！');
-        } else {
-            $this->error('只有超级管理员才能操作！');
-        }
+        $token = $this->request->get('uptoken', '');
+        $domain = boolval(AdminService::withUploadUnid($token));
+        return response(join("\r\n", [
+            sprintf("window.taDebug = %s;", $this->app->isDebug() ? 'true' : 'false'),
+            sprintf("window.taAdmin = '%s';", sysuri('admin/index/index', [], false, $domain)),
+            sprintf("window.taEditor = '%s';", sysconf('base.editor|raw') ?: 'ckeditor4'),
+        ]))->contentType('application/javascript');
     }
 
     /**
@@ -64,80 +79,11 @@ class Plugs extends Controller
      */
     public function optimize()
     {
-        if (AdminService::instance()->isSuper()) {
+        if (AdminService::isSuper()) {
             sysoplog('系统运维管理', '创建数据库优化任务');
             $this->_queue('优化数据库所有数据表', 'xadmin:database optimize');
         } else {
-            $this->error('只有超级管理员才能操作！');
-        }
-    }
-
-    /**
-     * 清理系统配置
-     * @login true
-     */
-    public function clearConfig()
-    {
-        if (AdminService::instance()->isSuper()) try {
-            $this->app->db->transaction(function () {
-                [$tmpdata, $newdata] = [[], []];
-                foreach ($this->app->db->name('SystemConfig')->order('type,name asc')->cursor() as $item) {
-                    $tmpdata[$item['type']][$item['name']] = $item['value'];
-                }
-                foreach ($tmpdata as $type => $items) foreach ($items as $name => $value) {
-                    $newdata[] = ['type' => $type, 'name' => $name, 'value' => $value];
-                }
-                $this->_query('SystemConfig')->empty()->insertAll($newdata);
-            });
-            $this->app->cache->delete('SystemConfig');
-            sysoplog('系统运维管理', '清理系统参数配置成功');
-            $this->success('清理系统配置成功！');
-        } catch (HttpResponseException $exception) {
-            throw $exception;
-        } catch (\Exception $exception) {
-            $this->error($exception->getMessage());
-        } else {
-            $this->error('只有超级管理员才能操作！');
-        }
-    }
-
-    /**
-     * 网站压缩发布
-     * @login true
-     */
-    public function pushRuntime()
-    {
-        if (AdminService::instance()->isSuper()) try {
-            AdminService::instance()->clearCache();
-            SystemService::instance()->pushRuntime();
-            sysoplog('系统运维管理', '刷新并创建网站路由缓存');
-            $this->success('网站缓存加速成功！');
-        } catch (HttpResponseException $exception) {
-            throw $exception;
-        } catch (\Exception $exception) {
-            $this->error($exception->getMessage());
-        } else {
-            $this->error('只有超级管理员才能操作！');
-        }
-    }
-
-    /**
-     * 清理运行缓存
-     * @login true
-     */
-    public function clearRuntime()
-    {
-        if (AdminService::instance()->isSuper()) try {
-            AdminService::instance()->clearCache();
-            SystemService::instance()->clearRuntime();
-            sysoplog('系统运维管理', '清理网站日志及缓存数据');
-            $this->success('清空缓存日志成功！');
-        } catch (HttpResponseException $exception) {
-            throw $exception;
-        } catch (\Exception $exception) {
-            $this->error($exception->getMessage());
-        } else {
-            $this->error('只有超级管理员才能操作！');
+            $this->error('请使用超管账号操作！');
         }
     }
 }

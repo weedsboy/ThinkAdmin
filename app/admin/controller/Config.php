@@ -1,35 +1,52 @@
 <?php
 
 // +----------------------------------------------------------------------
-// | ThinkAdmin
+// | Admin Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2021 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
 // | 开源协议 ( https://mit-license.org )
+// | 免责声明 ( https://thinkadmin.top/disclaimer )
 // +----------------------------------------------------------------------
-// | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-admin
+// | github 代码仓库：https://github.com/zoujingli/think-plugs-admin
 // +----------------------------------------------------------------------
 
 namespace app\admin\controller;
 
 use think\admin\Controller;
+use think\admin\Plugin;
 use think\admin\service\AdminService;
 use think\admin\service\ModuleService;
+use think\admin\service\RuntimeService;
 use think\admin\service\SystemService;
+use think\admin\Storage;
 use think\admin\storage\AliossStorage;
 use think\admin\storage\QiniuStorage;
 use think\admin\storage\TxcosStorage;
 
 /**
  * 系统参数配置
- * Class Config
+ * @class Config
  * @package app\admin\controller
  */
 class Config extends Controller
 {
+    const themes = [
+        'default' => '默认色0',
+        'white'   => '简约白0',
+        'red-1'   => '玫瑰红1',
+        'blue-1'  => '深空蓝1',
+        'green-1' => '小草绿1',
+        'black-1' => '经典黑1',
+        'red-2'   => '玫瑰红2',
+        'blue-2'  => '深空蓝2',
+        'green-2' => '小草绿2',
+        'black-2' => '经典黑2',
+    ];
+
     /**
      * 系统参数配置
      * @auth true
@@ -38,61 +55,81 @@ class Config extends Controller
     public function index()
     {
         $this->title = '系统参数配置';
-        $this->isSuper = AdminService::instance()->isSuper();
-        $this->version = ModuleService::instance()->getVersion();
+        $this->files = Storage::types();
+        $this->plugins = Plugin::get('', true);
+        $this->issuper = AdminService::isSuper();
+        $this->systemid = ModuleService::getRunVar('uni');
+        $this->framework = ModuleService::getLibrarys('topthink/framework');
+        $this->thinkadmin = ModuleService::getLibrarys('zoujingli/think-library');
+        uasort($this->plugins, static function ($a, $b) {
+            if ($a['space'] === $b['space']) return 0;
+            return $a['space'] > $b['space'] ? 1 : -1;
+        });
         $this->fetch();
     }
 
     /**
      * 修改系统参数
      * @auth true
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\DbException
-     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\admin\Exception
      */
     public function system()
     {
-        $this->_applyFormToken();
         if ($this->request->isGet()) {
             $this->title = '修改系统参数';
+            $this->themes = static::themes;
             $this->fetch();
         } else {
-            if ($xpath = $this->request->post('xpath')) {
-                if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $xpath)) {
-                    $this->error('后台入口名称需要是由英文字母开头！');
+            $post = $this->request->post();
+            // 修改网站后台入口路径
+            if (!empty($post['xpath'])) {
+                if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $post['xpath'])) {
+                    $this->error('后台入口格式错误！');
                 }
-                if ($xpath !== 'admin' && file_exists($this->app->getBasePath() . $xpath)) {
-                    $this->error("后台入口名称{$xpath}已经存在应用！");
+                if ($post['xpath'] !== 'admin') {
+                    if (is_dir(syspath("app/{$post['xpath']}")) || !empty(Plugin::get($post['xpath']))) {
+                        $this->error(lang('已存在 %s 应用！', [$post['xpath']]));
+                    }
                 }
-                SystemService::instance()->setRuntime(null, [$xpath => 'admin']);
+                RuntimeService::set(null, [$post['xpath'] => 'admin']);
             }
-            foreach ($this->request->post() as $name => $value) sysconf($name, $value);
+            // 修改网站 ICON 图标，替换 public/favicon.ico
+            if (preg_match('#^https?://#', $post['site_icon'] ?? '')) try {
+                SystemService::setFavicon($post['site_icon'] ?? '');
+            } catch (\Exception $exception) {
+                trace_file($exception);
+            }
+            // 数据数据到系统配置表
+            foreach ($post as $k => $v) sysconf($k, $v);
             sysoplog('系统配置管理', "修改系统参数成功");
-            $this->success('修改系统参数成功！', sysuri("{$xpath}/index/index") . '#' . url("{$xpath}/config/index"));
+            $this->success('数据保存成功！', admuri('admin/config/index'));
         }
     }
 
     /**
      * 修改文件存储
      * @auth true
-     * @throws \think\db\exception\DataNotFoundException
-     * @throws \think\db\exception\DbException
-     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\admin\Exception
      */
     public function storage()
     {
         $this->_applyFormToken();
         if ($this->request->isGet()) {
             $this->type = input('type', 'local');
-            if ($this->type === 'alioss') $this->points = AliossStorage::region();
-            elseif ($this->type === 'qiniu') $this->points = QiniuStorage::region();
-            elseif ($this->type === 'txcos') $this->points = TxcosStorage::region();
+            if ($this->type === 'alioss') {
+                $this->points = AliossStorage::region();
+            } elseif ($this->type === 'qiniu') {
+                $this->points = QiniuStorage::region();
+            } elseif ($this->type === 'txcos') {
+                $this->points = TxcosStorage::region();
+            }
             $this->fetch("storage-{$this->type}");
         } else {
             $post = $this->request->post();
             if (!empty($post['storage']['allow_exts'])) {
-                $exts = array_unique(explode(',', strtolower($post['storage']['allow_exts'])));
-                if (sort($exts) && in_array('php', $exts)) $this->error('禁止上传可执行的文件！');
+                $deny = ['sh', 'asp', 'bat', 'cmd', 'exe', 'php'];
+                $exts = array_unique(str2arr(strtolower($post['storage']['allow_exts'])));
+                if (count(array_intersect($deny, $exts)) > 0) $this->error('禁止上传可执行的文件！');
                 $post['storage']['allow_exts'] = join(',', $exts);
             }
             foreach ($post as $name => $value) sysconf($name, $value);
@@ -100,5 +137,4 @@ class Config extends Controller
             $this->success('修改文件存储成功！');
         }
     }
-
 }

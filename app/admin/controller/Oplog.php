@@ -1,37 +1,34 @@
 <?php
 
 // +----------------------------------------------------------------------
-// | ThinkAdmin
+// | Admin Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2021 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
 // | 开源协议 ( https://mit-license.org )
+// | 免责声明 ( https://thinkadmin.top/disclaimer )
 // +----------------------------------------------------------------------
-// | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-admin
+// | github 代码仓库：https://github.com/zoujingli/think-plugs-admin
 // +----------------------------------------------------------------------
 
 namespace app\admin\controller;
 
+use Ip2Region;
 use think\admin\Controller;
-use think\admin\service\AdminService;
+use think\admin\helper\QueryHelper;
+use think\admin\model\SystemOplog;
+use think\exception\HttpResponseException;
 
 /**
  * 系统日志管理
- * Class Oplog
+ * @class Oplog
  * @package app\admin\controller
  */
 class Oplog extends Controller
 {
-
-    /**
-     * 绑定数据表
-     * @var string
-     */
-    private $table = 'SystemOplog';
-
     /**
      * 系统日志管理
      * @auth true
@@ -42,25 +39,28 @@ class Oplog extends Controller
      */
     public function index()
     {
-        $this->title = '系统日志管理';
-        $this->isSupper = AdminService::instance()->isSuper();
-        $this->actions = $this->app->db->name($this->table)->distinct(true)->column('action');
-        $query = $this->_query($this->table)->dateBetween('create_at')->order('id desc');
-        $query->like('action,node,content,username,geoip')->page();
+        SystemOplog::mQuery()->layTable(function () {
+            $this->title = '系统日志管理';
+            $columns = SystemOplog::mk()->column('action,username', 'id');
+            $this->users = array_unique(array_column($columns, 'username'));
+            $this->actions = array_unique(array_column($columns, 'action'));
+        }, static function (QueryHelper $query) {
+            $query->dateBetween('create_at')->equal('username,action')->like('content,geoip,node');
+        });
     }
 
     /**
      * 列表数据处理
-     * @auth true
      * @param array $data
      * @throws \Exception
      */
     protected function _index_page_filter(array &$data)
     {
-        $ip = new \Ip2Region();
-        foreach ($data as &$vo) {
-            $isp = $ip->btreeSearch($vo['geoip']);
-            $vo['isp'] = str_replace(['内网IP', '0', '|'], '', $isp['region'] ?? '');
+        $region = new Ip2Region();
+        foreach ($data as &$vo) try {
+            $vo['geoisp'] = $region->simple($vo['geoip']);
+        } catch (\Exception $exception) {
+            $vo['geoip'] = $exception->getMessage();
         }
     }
 
@@ -71,25 +71,23 @@ class Oplog extends Controller
     public function clear()
     {
         try {
-            $this->_query($this->table)->empty();
-            sysoplog('系统运维管理', '成功清理所有日志数据');
+            SystemOplog::mQuery()->empty();
+            sysoplog('系统运维管理', '成功清理所有日志');
             $this->success('日志清理成功！');
-        } catch (\think\exception\HttpResponseException $exception) {
+        } catch (HttpResponseException $exception) {
             throw $exception;
         } catch (\Exception $exception) {
-            $this->error("日志清理失败，{$exception->getMessage()}");
+            trace_file($exception);
+            $this->error(lang("日志清理失败，%s", [$exception->getMessage()]));
         }
     }
 
     /**
      * 删除系统日志
      * @auth true
-     * @throws \think\db\exception\DbException
      */
     public function remove()
     {
-        $this->_applyFormToken();
-        $this->_delete($this->table);
+        SystemOplog::mDelete();
     }
-
 }

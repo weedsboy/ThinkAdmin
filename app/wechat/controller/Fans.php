@@ -1,52 +1,51 @@
 <?php
 
 // +----------------------------------------------------------------------
-// | ThinkAdmin
+// | Wechat Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2021 广州楚才信息科技有限公司 [ http://www.cuci.cc ]
+// | 版权所有 2014~2023 Anyon <zoujingli@qq.com>
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
 // | 开源协议 ( https://mit-license.org )
+// | 免责声明 ( https://thinkadmin.top/disclaimer )
 // +----------------------------------------------------------------------
-// | gitee 代码仓库：https://gitee.com/zoujingli/ThinkAdmin
-// | github 代码仓库：https://github.com/zoujingli/ThinkAdmin
+// | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-wechat
+// | github 代码仓库：https://github.com/zoujingli/think-plugs-wechat
 // +----------------------------------------------------------------------
 
 namespace app\wechat\controller;
 
+use app\wechat\model\WechatFans;
+use app\wechat\model\WechatFansTags;
 use app\wechat\service\WechatService;
 use think\admin\Controller;
+use think\admin\helper\QueryHelper;
 use think\exception\HttpResponseException;
 
 /**
  * 微信用户管理
- * Class Fans
+ * @class Fans
  * @package app\wechat\controller
  */
 class Fans extends Controller
 {
     /**
-     * 绑定数据表
-     * @var string
-     */
-    private $table = 'WechatFans';
-
-    /**
      * 微信用户管理
      * @auth true
      * @menu true
-     * @throws \think\admin\Exception
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
      */
     public function index()
     {
-        $this->title = '微信用户管理';
-        $this->where = ['appid' => WechatService::instance()->getAppid()];
-        $query = $this->_query($this->table)->like('nickname')->equal('subscribe,is_black');
-        $query->dateBetween('subscribe_at')->where($this->where)->order('subscribe_time desc')->page();
+        WechatFans::mQuery()->layTable(function () {
+            $this->title = '微信用户管理';
+        }, static function (QueryHelper $query) {
+            $query->where(['appid' => WechatService::getAppid()]);
+            $query->like('nickname')->equal('subscribe,is_black')->dateBetween('subscribe_at');
+        });
     }
 
     /**
@@ -55,13 +54,7 @@ class Fans extends Controller
      */
     protected function _index_page_filter(array &$data)
     {
-        $tags = $this->app->db->name('WechatFansTags')->column('name', 'id');
-        foreach ($data as &$vo) {
-            $vo['tags'] = [];
-            foreach (explode(',', $vo['tagid_list']) as $tagid) {
-                if (isset($tags[$tagid])) $vo['tags'][] = $tags[$tagid];
-            }
-        }
+        foreach ($data as &$vo) $vo['subscribe_at'] = format_datetime($vo['subscribe_at']);
     }
 
     /**
@@ -75,54 +68,60 @@ class Fans extends Controller
     }
 
     /**
+     * 黑名单列表操作
+     * @auth true
+     */
+    public function black()
+    {
+        try {
+            $data = $this->_vali([
+                'black.require'  => '操作类型不能为空！',
+                'openid.require' => '操作用户不能为空！',
+            ]);
+            foreach (array_chunk(str2arr($data['openid']), 20) as $openids) {
+                if ($data['black']) {
+                    WechatService::WeChatUser()->batchBlackList($openids);
+                    WechatFans::mk()->whereIn('openid', $openids)->update(['is_black' => 1]);
+                } else {
+                    WechatService::WeChatUser()->batchUnblackList($openids);
+                    WechatFans::mk()->whereIn('openid', $openids)->update(['is_black' => 0]);
+                }
+            }
+            if (empty($data['black'])) {
+                $this->success('移出黑名单成功！');
+            } else {
+                $this->success('拉入黑名单成功！');
+            }
+        } catch (HttpResponseException $exception) {
+            throw $exception;
+        } catch (\Exception $exception) {
+            $this->error("黑名单操作失败，请稍候再试！<br>{$exception->getMessage()}");
+        }
+    }
+
+    /**
      * 删除用户信息
      * @auth true
-     * @throws \think\db\exception\DbException
      */
     public function remove()
     {
-        $this->_applyFormToken();
-        $this->_delete($this->table);
+        WechatFans::mDelete();
     }
 
     /**
-     * 用户拉入黑名单
+     * 清空用户数据
      * @auth true
      */
-    public function blackAdd()
+    public function truncate()
     {
         try {
-            $this->_applyFormToken();
-            foreach (array_chunk(explode(',', $this->request->post('openid')), 20) as $openids) {
-                WechatService::WeChatUser()->batchBlackList($openids);
-                $this->app->db->name('WechatFans')->whereIn('openid', $openids)->update(['is_black' => '1']);
-            }
-            $this->success('拉入黑名单成功！');
+            WechatFans::mQuery()->empty();
+            WechatFansTags::mQuery()->empty();
+            $this->success('清空用户数据成功！');
         } catch (HttpResponseException $exception) {
             throw  $exception;
         } catch (\Exception $exception) {
-            $this->error("拉入黑名单失败，请稍候再试！<br>{$exception->getMessage()}");
+            $this->error("清空用户数据失败，{$exception->getMessage()}");
         }
     }
-
-    /**
-     * 用户移出黑名单
-     * @auth true
-     */
-    public function blackDel()
-    {
-        try {
-            $this->_applyFormToken();
-            foreach (array_chunk(explode(',', $this->request->post('openid')), 20) as $openids) {
-                WechatService::WeChatUser()->batchUnblackList($openids);
-                $this->app->db->name('WechatFans')->whereIn('openid', $openids)->update(['is_black' => '0']);
-            }
-            $this->success('移出黑名单成功！');
-        } catch (HttpResponseException $exception) {
-            throw  $exception;
-        } catch (\Exception $exception) {
-            $this->error("移出黑名单失败，请稍候再试！<br>{$exception->getMessage()}");
-        }
-    }
-
 }
