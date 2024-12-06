@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Admin Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -13,6 +13,8 @@
 // | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-admin
 // | github 代码仓库：https://github.com/zoujingli/think-plugs-admin
 // +----------------------------------------------------------------------
+
+declare(strict_types=1);
 
 namespace app\admin\controller;
 
@@ -94,7 +96,6 @@ class Menu extends Controller
     /**
      * 表单数据处理
      * @param array $vo
-     * @throws \ReflectionException
      */
     protected function _form_filter(array &$vo)
     {

@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Admin Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -30,7 +30,6 @@ class Index extends Controller
 {
     /**
      * 显示后台首页
-     * @throws \ReflectionException
      * @throws \think\admin\Exception
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
@@ -145,6 +144,10 @@ class Index extends Controller
             }
             if ($user->save(['password' => md5($data['password'])])) {
                 sysoplog('系统用户管理', "修改用户[{$user['id']}]密码成功");
+                // 修改密码同步事件处理
+                $this->app->event->trigger('PluginAdminChangePassword', [
+                    'uuid' => intval($user['id']), 'pass' => $data['password']
+                ]);
                 $this->success('密码修改成功，下次请使用新密码登录！', '');
             } else {
                 $this->error('密码修改失败，请稍候再试！');

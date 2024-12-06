@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Admin Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -13,6 +13,8 @@
 // | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-admin
 // | github 代码仓库：https://github.com/zoujingli/think-plugs-admin
 // +----------------------------------------------------------------------
+
+declare(strict_types=1);
 
 namespace app\admin\controller;
 
@@ -85,7 +87,7 @@ class Queue extends Controller
         try {
             $data = $this->_vali(['code.require' => '任务编号不能为空！']);
             $queue = QueueService::instance()->initialize($data['code'])->reset();
-            $queue->progress(1, '>>> 任务重置成功 <<<', 0.00);
+            $queue->progress(1, '>>> 任务重置成功 <<<', '0.00');
             $this->success('任务重置成功！', $queue->code);
         } catch (HttpResponseException $exception) {
             throw $exception;

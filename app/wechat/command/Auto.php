@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Wechat Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 Anyon <zoujingli@qq.com>
+// | 版权所有 2014~2024 Anyon <zoujingli@qq.com>
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -61,13 +61,13 @@ class Auto extends Command
     {
         $code = $input->getArgument('autocode');
         $this->openid = $input->getArgument('openid');
-        if (empty($code)) $this->setQueueError("Message Code cannot be empty");
-        if (empty($this->openid)) $this->setQueueError("Wechat Openid cannot be empty");
+        if (empty($code)) $this->setQueueError('Message Code cannot be empty');
+        if (empty($this->openid)) $this->setQueueError('Wechat Openid cannot be empty');
 
         // 查询微信消息对象
         $map = ['code' => $code, 'status' => 1];
         $data = WechatAuto::mk()->where($map)->find();
-        if (empty($data)) $this->setQueueError("Message Data Query failed");
+        if (empty($data)) $this->setQueueError('Message Data Query failed');
 
         // 发送微信客服消息
         $this->buildMessage($data->toArray());

@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Admin Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -13,6 +13,8 @@
 // | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-admin
 // | github 代码仓库：https://github.com/zoujingli/think-plugs-admin
 // +----------------------------------------------------------------------
+
+declare(strict_types=1);
 
 namespace app\admin\controller;
 
@@ -56,11 +58,15 @@ class Config extends Controller
     {
         $this->title = '系统参数配置';
         $this->files = Storage::types();
-        $this->plugins = Plugin::get('', true);
+        $this->plugins = Plugin::get(null, true);
         $this->issuper = AdminService::isSuper();
         $this->systemid = ModuleService::getRunVar('uni');
         $this->framework = ModuleService::getLibrarys('topthink/framework');
         $this->thinkadmin = ModuleService::getLibrarys('zoujingli/think-library');
+        if (AdminService::isSuper() && $this->app->session->get('user.password') === md5('admin')) {
+            $url = url('admin/index/pass', ['id' => AdminService::getUserId()]);
+            $this->showErrorMessage = lang("超级管理员账号的密码未修改，建议立即<a data-modal='%s'>修改密码</a>！", [$url]);
+        }
         uasort($this->plugins, static function ($a, $b) {
             if ($a['space'] === $b['space']) return 0;
             return $a['space'] > $b['space'] ? 1 : -1;

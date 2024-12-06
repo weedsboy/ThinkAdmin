@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Wechat Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 Anyon <zoujingli@qq.com>
+// | 版权所有 2014~2024 Anyon <zoujingli@qq.com>
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -67,7 +67,7 @@ class Record extends Controller
             if ($recode->getAttr('payment_status') < 1) $this->error('支付单未完成支付！');
             $reason = "来自订单 {$recode['order_code']} 的退款！";
             sysoplog('微信支付退款', "支付单 {$data['code']} 发起退款！");
-            [$state, $message] = PaymentService::refund($data['code'], $recode->getAttr('payment_amount'), $reason);
+            [$state, $message] = PaymentService::refund($data['code'], strval($recode->getAttr('payment_amount')), $reason);
             $state ? $this->success($message) : $this->error($message);
         } catch (HttpResponseException $exception) {
             throw $exception;

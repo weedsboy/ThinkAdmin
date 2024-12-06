@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Admin Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -13,6 +13,8 @@
 // | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-admin
 // | github 代码仓库：https://github.com/zoujingli/think-plugs-admin
 // +----------------------------------------------------------------------
+
+declare(strict_types=1);
 
 namespace app\admin\controller\api;
 
@@ -50,10 +52,9 @@ class Upload extends Controller
         $allows = str2arr(sysconf('storage.allow_exts|raw'));
         if (empty($uuid) && $unid > 0) $allows = array_intersect($exts, $allows);
         foreach ($allows as $ext) $data['exts'][$ext] = Storage::mime($ext);
-        $template = realpath(__DIR__ . '/../../view/api/upload.js');
         $data['exts'] = json_encode($data['exts'], JSON_UNESCAPED_UNICODE);
         $data['nameType'] = sysconf('storage.name_type|raw') ?: 'xmd5';
-        return view($template, $data)->contentType('application/x-javascript');
+        return view(dirname(__DIR__, 2) . '/view/api/upload.js', $data)->contentType('application/x-javascript');
     }
 
     /**
@@ -145,7 +146,7 @@ class Upload extends Controller
                 $alist = AlistStorage::instance();
                 $data['url'] = $alist->url($data['key']);
                 $data['server'] = $alist->upload();
-                $data['filepath'] = $alist->real($data['key'], true);
+                $data['filepath'] = $alist->real($data['key']);
                 $data['authorization'] = $alist->token();
             } else {
                 $this->error('未知的存储引擎！');
@@ -193,7 +194,7 @@ class Upload extends Controller
         $extension = strtolower($file->getOriginalExtension());
         $saveFileName = input('key') ?: Storage::name($file->getPathname(), $extension, '', 'md5_file');
         // 检查文件名称是否合法
-        if (strpos($saveFileName, '../') !== false) {
+        if (strpos($saveFileName, '..') !== false) {
             $this->error('文件路径不能出现跳级操作！');
         }
         // 检查文件后缀是否被恶意修改
@@ -266,7 +267,7 @@ class Upload extends Controller
     private function getType(): string
     {
         $type = strtolower(input('uptype', ''));
-        if (in_array($type, ['local', 'qiniu', 'alioss', 'txcos', 'uptype'])) {
+        if (in_array($type, array_keys(Storage::types()))) {
             return $type;
         } else {
             return strtolower(sysconf('storage.type|raw'));
@@ -284,7 +285,7 @@ class Upload extends Controller
             if ($file instanceof UploadedFile) {
                 return $file;
             } else {
-                $this->error('未获取到上传的文件对象！');
+                $this->error('读取临时文件失败！');
             }
         } catch (HttpResponseException $exception) {
             throw $exception;
@@ -329,6 +330,7 @@ class Upload extends Controller
         $bins = hex2bin($hexs);
         /* 匹配十六进制中的 <% ( ) %> 或 <? ( ) ?> 或 <script | /script> */
         foreach (['<?php ', '<% ', '<script '] as $key) if (stripos($bins, $key) !== false) return true;
-        return preg_match("/(3c25.*?28.*?29.*?253e)|(3c3f.*?28.*?29.*?3f3e)|(3C534352495054)|(2F5343524950543E)|(3C736372697074)|(2F7363726970743E)/is", $hexs);
+        $result = preg_match("/(3c25.*?28.*?29.*?253e)|(3c3f.*?28.*?29.*?3f3e)|(3C534352495054)|(2F5343524950543E)|(3C736372697074)|(2F7363726970743E)/is", $hexs);
+        return $result === false || $result > 0;
     }
 }

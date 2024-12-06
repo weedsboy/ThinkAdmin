@@ -1,7 +1,7 @@
 // +----------------------------------------------------------------------
 // | Static Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -23,9 +23,9 @@ define(function () {
     Excel.prototype.options = {writeOpt: {bookSST: true}};
 
     /*! 导出 Excel 文件 */
-    Excel.prototype.export = function (data, name) {
+    Excel.prototype.export = function (data, name, options) {
         if (name.substring(0, -5).toLowerCase() !== '.xlsx') name += '.xlsx';
-        layui.excel.exportExcel(data, name, 'xlsx', this.options || {writeOpt: {bookSST: true}});
+        layui.excel.exportExcel(data, name, 'xlsx', options || this.options || {writeOpt: {bookSST: true}});
     };
 
     /*! 绑定导出的事件 */
@@ -38,9 +38,9 @@ define(function () {
     //      Excel.bind(DONE1,FILENAME1,'#EXPORT1')
     //      Excel.bind(DONE2,FILENAME2,'#EXPORT2')
     // </script>
-    Excel.prototype.bind = function (done, filename, selector) {
+    Excel.prototype.bind = function (done, filename, selector, options) {
         let that = this;
-        this.options = {}; // {writeOpt: {bookSST: true}};
+        this.options = options || {}
         $('body').off('click', selector || '[data-form-export]').on('click', selector || '[data-form-export]', function () {
             let form = $(this).parents('form');
             let name = this.dataset.filename || filename;
@@ -118,11 +118,10 @@ define(function () {
 
         // 设置表格行宽高，需要设置最后的行或列宽高，否则部分不生效 ？？？
         let rowsC = {1: 33}, colsC = Object.assign({}, defaC, {A: 60}, colsWidth || {});
-        rowsC[data.length] = defaultHeight || 28, this.options.extend = {
+        rowsC[data.length] = defaultHeight || 28, this.options.extend = Object.assign({}, {
             '!cols': layui.excel.makeColConfig(colsC, defaultWidth || 99),
             '!rows': layui.excel.makeRowConfig(rowsC, defaultHeight || 28),
-        };
-
+        }, this.options.extend || {});
         return data;
     }
 

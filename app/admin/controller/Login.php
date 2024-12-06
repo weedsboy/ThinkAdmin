@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Admin Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -13,6 +13,8 @@
 // | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-admin
 // | github 代码仓库：https://github.com/zoujingli/think-plugs-admin
 // +----------------------------------------------------------------------
+
+declare(strict_types=1);
 
 namespace app\admin\controller;
 
@@ -43,8 +45,13 @@ class Login extends Controller
             if (AdminService::isLogin()) {
                 $this->redirect(sysuri('admin/index/index'));
             } else {
+                // 加载登录模板
+                $this->title = '系统登录';
+                // 登录验证令牌
+                $this->captchaType = 'LoginCaptcha';
+                $this->captchaToken = CodeExtend::uuid();
                 // 当前运行模式
-                $this->developMode = RuntimeService::check();
+                $this->runtimeMode = RuntimeService::check();
                 // 后台背景处理
                 $images = str2arr(sysconf('login_image|raw') ?: '', '|');
                 if (empty($images)) $images = [
@@ -52,18 +59,10 @@ class Login extends Controller
                     SystemService::uri('/static/theme/img/login/bg2.jpg'),
                 ];
                 $this->loginStyle = sprintf('style="background-image:url(%s)" data-bg-transition="%s"', $images[0], join(',', $images));
-                // 登录验证令牌
-                $this->captchaType = 'LoginCaptcha';
-                $this->captchaToken = CodeExtend::uniqidDate(18);
-                if (!$this->app->session->get('LoginInputSessionError')) {
-                    $this->app->session->set($this->captchaType, $this->captchaToken);
-                }
-                // 更新后台域名
+                // 更新后台主域名，用于部分无法获取域名的场景调用
                 if ($this->request->domain() !== sysconf('base.site_host|raw')) {
                     sysconf('base.site_host', $this->request->domain());
                 }
-                // 加载登录模板
-                $this->title = '系统登录';
                 $this->fetch();
             }
         } else {
@@ -96,9 +95,9 @@ class Login extends Controller
             $user->hidden(['sort', 'status', 'password', 'is_deleted']);
             $this->app->session->set('user', $user->toArray());
             $this->app->session->delete('LoginInputSessionError');
-            $user->inc('login_num')->update([
-                'login_at' => date('Y-m-d H:i:s'),
-                'login_ip' => $this->app->request->ip(),
+            // 更新登录次数
+            $user->where(['id' => $user->getAttr('id')])->inc('login_num')->update([
+                'login_at' => date('Y-m-d H:i:s'), 'login_ip' => $this->app->request->ip(),
             ]);
             // 刷新用户权限
             AdminService::apply(true);
@@ -119,9 +118,9 @@ class Login extends Controller
         ]);
         $image = CaptchaService::instance()->initialize();
         $captcha = ['image' => $image->getData(), 'uniqid' => $image->getUniqid()];
-        if ($this->app->session->get($input['type']) === $input['token']) {
+        // 未发生异常时，直接返回验证码内容
+        if (!$this->app->session->get('LoginInputSessionError')) {
             $captcha['code'] = $image->getCode();
-            $this->app->session->delete($input['type']);
         }
         $this->success('生成验证码成功', $captcha);
     }

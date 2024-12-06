@@ -1,7 +1,7 @@
 // +----------------------------------------------------------------------
 // | Static Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -48,6 +48,7 @@ require.config({
         'angular': ['plugs/angular/angular.min'],
         'cropper': ['plugs/cropper/cropper.min'],
         'echarts': ['plugs/echarts/echarts.min'],
+        'weditor': ['plugs/editor/create'],
         'ckeditor4': ['plugs/ckeditor4/ckeditor'],
         'ckeditor5': ['plugs/ckeditor5/ckeditor'],
         'artplayer': ['plugs/jquery/artplayer.min'],
@@ -55,6 +56,7 @@ require.config({
         'websocket': ['plugs/socket/websocket'],
         'compressor': ['plugs/jquery/compressor.min'],
         'sortablejs': ['plugs/sortable/sortable.min'],
+        '_weditor': ['plugs/editor/index'],
         'vue.sortable': ['plugs/sortable/vue.draggable.min'],
         'jquery.ztree': ['plugs/ztree/ztree.all.min'],
         'jquery.masonry': ['plugs/jquery/masonry.min'],
@@ -65,6 +67,7 @@ require.config({
         'excel': {deps: [baseRoot + 'plugs/layui_exts/excel.js']},
         'notify': {deps: ['css!' + baseRoot + 'plugs/notify/theme.css']},
         'cropper': {deps: ['css!' + baseRoot + 'plugs/cropper/cropper.min.css']},
+        '_weditor': {deps: ['css!' + baseRoot + 'plugs/editor/css/style.css']},
         'websocket': {deps: [baseRoot + 'plugs/socket/swfobject.js']},
         'ckeditor5': {deps: ['jquery', 'upload', 'css!' + baseRoot + 'plugs/ckeditor5/ckeditor.css']},
         'vue.sortable': {deps: ['vue', 'sortablejs']},
@@ -80,11 +83,16 @@ define('jquery', [], function () {
 
 /*! 注册 ckeditor 组件 */
 define('ckeditor', (function (type) {
+    if (type === 'wangEditor') return ['weditor'];
     if (/^ckeditor[45]$/.test(type)) return [type];
     return [Object.fromEntries ? 'ckeditor5' : 'ckeditor4'];
 })(window.taEditor || 'ckeditor4'), function (ckeditor) {
     return ckeditor;
 });
+
+require(['ckeditor'], function () {
+
+})
 
 $(function () {
 
@@ -106,6 +114,10 @@ $(function () {
         this.onConfirm.getLoadCallable = function (tabldId, callable) {
             typeof callable === 'function' && callable();
             return tabldId ? function (ret, time) {
+                // 单独处理 javascript: 返回内容处理
+                if (typeof ret.data === 'string' && ret.data.indexOf('javascript:') === 0) {
+                    $.msg.goto(ret.data)
+                }
                 if (ret.code < 1) return true;
                 time === 'false' ? $.layTable.reload(tabldId) : $.msg.success(ret.info, time, function () {
                     $.layTable.reload(tabldId);
@@ -358,17 +370,17 @@ $(function () {
             }, load, tips);
         };
         /*! 打开 IFRAME 窗口 */
-        this.iframe = function (url, name, area, offset, destroy, success, isfull) {
+        this.iframe = function (url, name, area, offset, destroy, success, isfull, maxmin) {
             if (typeof area === 'string' && area.indexOf('[') === 0) area = eval('(' + area + ')');
-            this.idx = layer.open({title: name || '窗口', type: 2, area: area || ['800px', '580px'], end: destroy || null, offset: offset, fixed: true, maxmin: false, content: url, success: success});
+            this.idx = layer.open({title: name || '窗口', type: 2, area: area || ['800px', '580px'], end: destroy || null, offset: offset, fixed: true, maxmin: maxmin || false, content: url, success: success});
             return isfull && layer.full(this.idx), this.idx;
         };
         /*! 加载 HTML 到弹出层，返回 refer 对象 */
-        this.modal = function (url, data, name, call, load, tips, area, offset, isfull) {
+        this.modal = function (url, data, name, call, load, tips, area, offset, isfull, maxmin) {
             return this.load(url, data, 'GET', function (res, time, defer) {
                 if (typeof area === 'string' && area.indexOf('[') === 0) area = eval('(' + area + ')');
                 return typeof res === 'object' ? $.msg.auto(res) : $.msg.mdx.push(this.idx = layer.open({
-                    type: 1, btn: false, area: area || '800px', offset: offset || 'auto', resize: false, content: res,
+                    type: 1, btn: false, area: area || '800px', offset: offset || 'auto', resize: false, content: res, maxmin: maxmin,
                     title: name === 'false' ? '' : name, end: () => defer.notify('modal.close'), success: function ($dom, idx) {
                         defer.notify('modal.success', $dom) && typeof call === 'function' && call.call($.form, $dom);
                         $.form.reInit($dom.off('click', '[data-close]').on('click', '[data-close]', function () {
@@ -390,11 +402,17 @@ $(function () {
         };
         /*! 通过 URI 查询最佳菜单 NODE */
         this.queryNode = function (uri, node) {
-            if (!/^m-/.test(node = node || location.href.replace(/.*spm=([\d\-m]+).*/ig, '$1'))) {
-                let $menu = $('[data-menu-node][data-open*="' + uri.replace(/\.html$/ig, '') + '"]');
-                return $menu.size() ? $menu.get(0).dataset.menuNode : '';
+            // 如果该节点存在直接返回 Node 值
+            if (/^m-/.test(node = node || location.href.replace(/.*spm=([\d\-m]+).*/ig, '$1'))) {
+                if ($('[data-menu-node="' + node + '"]').size()) return node;
             }
-            return node;
+            let path = uri.replace(/\.html$/ig, '');
+            // 尝试通过 URI 查询节点值
+            let $menu = $('[data-menu-node][data-open*="' + path + '"]');
+            if ($menu.size()) return $menu.get(0).dataset.menuNode;
+            // 尝试通过 URL 查询节点值
+            $menu = $('[data-menu-node][data-open~="#' + path + '"]');
+            return $menu.size() ? $menu.get(0).dataset.menuNode : (/^m-/.test(node || '') ? node : '');
         };
         /*! 完整 URL 转 URI 地址 */
         this.parseUri = function (uri, elem, vars, temp, attrs) {
@@ -412,52 +430,50 @@ $(function () {
         };
         /*! 后台菜单动作初始化 */
         this.listen = function () {
-            let layout = $('.layui-layout-admin'), mclass = 'layui-layout-left-mini';
+            let layout = $('.layui-layout-admin'), mini = 'layui-layout-left-mini';
             /*! 菜单切及MiniTips处理 */
             $.base.onEvent('click', '[data-target-menu-type]', function () {
-                layui.data('AdminMenuType', {key: 'mini', value: layout.toggleClass(mclass).hasClass(mclass)});
+                layui.data('AdminMenuType', {key: 'mini', value: layout.toggleClass(mini).hasClass(mini)});
             }).on('click', '[data-submenu-layout]>a', function () {
                 setTimeout("$.menu.sync(1)", 100);
             }).on('mouseenter', '[data-target-tips]', function (evt) {
-                if (!layout.hasClass(mclass) || !this.dataset.targetTips) return;
+                if (!layout.hasClass(mini) || !this.dataset.targetTips) return;
                 evt.idx = layer.tips(this.dataset.targetTips, this, {time: 0});
-                $(this).mouseleave(function () {
-                    layer.close(evt.idx);
-                });
+                $(this).mouseleave(() => layer.close(evt.idx));
             });
             /*! 监听窗口大小及HASH切换 */
             return $(window).on('resize', function () {
-                (layui.data('AdminMenuType')['mini'] || $body.width() < 1000) ? layout.addClass(mclass) : layout.removeClass(mclass);
+                (layui.data('AdminMenuType')['mini'] || $body.width() < 1000) ? layout.addClass(mini) : layout.removeClass(mini);
             }).trigger('resize').on('hashchange', function () {
                 if (/^#(https?:)?(\/\/|\\\\)/.test(location.hash)) return $.msg.tips('禁止访问外部链接！');
-                if (location.hash.length < 1) return $body.find('[data-menu-node]:first').trigger('click'); else return $.menu.href(location.hash);
+                return location.hash.length < 1 ? $body.find('[data-menu-node]:first').trigger('click') : $.menu.href(location.hash);
             }).trigger('hashchange');
         };
-        /*! 同步二级菜单展示状态 */
+        /*! 同步二级菜单展示状态(1同步缓存,2同步展示) */
         this.sync = function (mode) {
             $('[data-submenu-layout]').map(function () {
                 let node = this.dataset.submenuLayout;
-                if (mode === 1) layui.data('AdminMenuState', {key: node, value: $(this).hasClass('layui-nav-itemed') ? 2 : 1}); else if (mode === 2) (layui.data('AdminMenuState')[node] || 2) === 2 && $(this).addClass('layui-nav-itemed');
+                if (mode === 1) layui.data('AdminMenuState', {key: node, value: $(this).hasClass('layui-nav-itemed') ? 2 : 1});
+                if (mode === 2) (layui.data('AdminMenuState')[node] || 0) === 2 && $(this).addClass('layui-nav-itemed');
             });
         };
         /*! 页面 LOCATION-HASH 跳转 */
         this.href = function (hash, node) {
             if ((hash || '').length < 1) return $('[data-menu-node]:first').trigger('click');
-            // $.msg.page.show(),$.form.load(hash, {}, 'get', $.msg.page.hide, true),$.menu.sync(2);
             $.form.load(hash, {}, 'get', false, !$.msg.page.stat()), $.menu.sync(2);
-            /*! 菜单选择切换 */
+            // 菜单选择切换
             if (/^m-/.test(node = node || $.menu.queryNode($.menu.getUri()))) {
-                let arr = node.split('-'), tmp = arr.shift(), $all = $('a[data-menu-node]').parent('.layui-this');
+                let arr = node.split('-'), tmp = arr.shift(), all = $('a[data-menu-node]').parent('.layui-this');
                 while (arr.length > 0) {
                     tmp = tmp + '-' + arr.shift();
-                    $all = $all.not($('a[data-menu-node="' + tmp + '"]').parent().addClass('layui-this'));
+                    all = all.not($('a[data-menu-node="' + tmp + '"]').parent().addClass('layui-this'));
                 }
-                $all.removeClass('layui-this');
-                /*! 菜单模式切换 */
+                all.removeClass('layui-this');
+                // 菜单模式切换
                 if (node.split('-').length > 2) {
-                    let _tmp = node.split('-'), _node = _tmp.shift() + '-' + _tmp.shift();
-                    $('[data-menu-layout]').not($('[data-menu-layout="' + _node + '"]').removeClass('layui-hide')).addClass('layui-hide');
-                    $('[data-menu-node="' + node + '"]').parent().parent().parent().addClass('layui-nav-itemed');
+                    let tmp = node.split('-'), pnode = tmp.slice(0, 2).join('-'), snode = tmp.slice(0, 3).join('-')
+                    $('[data-menu-layout]').not($('[data-menu-layout="' + pnode + '"]').removeClass('layui-hide')).addClass('layui-hide');
+                    $('[data-submenu-layout="' + snode + '"]').addClass('layui-nav-itemed');
                     $('.layui-layout-admin').removeClass('layui-layout-left-hide');
                 } else {
                     $('.layui-layout-admin').addClass('layui-layout-left-hide');
@@ -551,7 +567,7 @@ $(function () {
                 'data-max-width': $in.data('max-width') || 0, 'data-max-height': $in.data('max-height') || 0,
                 'data-cut-width': $in.data('cut-width') || 0, 'data-cut-height': $in.data('cut-height') || 0,
             }).on('push', function (evt, src) {
-                ims.push(src), $in.val(ims.join('|')), showImageContainer([src]);
+                ims.push(src), $in.val(ims.join('|')).trigger('change'), showImageContainer([src]);
             }) && (ims.length > 0 && showImageContainer(ims));
 
             function showImageContainer(srcs) {
@@ -564,7 +580,7 @@ $(function () {
                         ims = [], $bt.prevAll('.uploadimage').map(function () {
                             ims.push($(this).attr('data-tips-image'));
                         });
-                        ims.reverse(), $in.val(ims.join('|'));
+                        ims.reverse(), $in.val(ims.join('|')).trigger('change');
                     }), $bt.before($img);
                 });
             }
@@ -644,9 +660,11 @@ $(function () {
             option.id = table.id, option.elem = table, option.url = params.url || table.dataset.url || location.href;
             option.limit = params.limit || 20, option.loading = params.loading !== false, option.autoSort = params.autoSort === true;
             option.page = params.page !== false ? (params.page || true) : false, option.cols = params.cols || [[]], option.success = params.done || '';
+            option.cellExpandedMode = option.cellExpandedMode || 'tips';
 
             // 默认动态设置页数, 动态设置最大高度
             if (option.page === true) option.page = {curr: layui.sessionData('pages')[option.id] || 1};
+            if (option.width === 'full') option.width = $table.parent().width();
             if (option.height === 'full') if ($table.parents('.iframe-pagination').size()) {
                 $table.parents('.iframe-pagination').addClass('not-footer');
                 option.height = $(window).height() - $table.removeClass('layui-hide').offset().top - 20;
@@ -664,10 +682,13 @@ $(function () {
             option.done = function (res, curr, count) {
                 layui.sessionData('pages', {key: table.id, value: this.page.curr || 1});
                 typeof option.success === 'function' && option.success.call(this, res, curr, count);
-                $.form.reInit($table.next()).find('[data-load][data-time!="false"],[data-action][data-time!="false"],[data-queue],[data-iframe]').not('[data-table-id]').attr('data-table-id', table.id);
+                $.form.reInit($table.next()).find('[data-open],[data-load][data-time!="false"],[data-action][data-time!="false"],[data-queue],[data-iframe]').not('[data-table-id]').attr('data-table-id', table.id);
                 (option.loading = this.loading = true) && $table.data('next', this).next().find(cls.join(',')).animate({opacity: 1});
-
+                setTimeout(() => layui.table.resize(table.id), 10);
             }, option.parseData = function (res) {
+                if (res.code === 0 && res.url) {
+                    return $.msg.auto(res);
+                }
                 if (typeof params.filter === 'function') {
                     res.data = params.filter(res.data, res);
                 }
@@ -677,7 +698,7 @@ $(function () {
                 return res;
             };
             // 关联搜索表单
-            let sform, search = params.search || table.dataset.targetSearch;
+            let sform, search = params.search || table.dataset.targetSearch || 'form[data-table-id="' + table.id + '"] [data-form-export]';
             if (search) (sform = $body.find(search)).map(function () {
                 $(this).attr('data-table-id', table.id);
             });
@@ -900,7 +921,12 @@ $(function () {
 
     /*! 注册 data-open 事件行为 */
     $.base.onEvent('click', '[data-open]', function () {
+        // 仅记录当前表格分页
+        let page = 0, tbid = this.dataset.tableId || null;
+        if (tbid) page = layui.sessionData('pages')[tbid] || 0;
         layui.sessionData('pages', null);
+        if (page > 0) layui.sessionData('pages', {key: tbid, value: page})
+        // 根据链接类型跳转页面
         if (this.dataset.open.match(/^https?:/)) {
             $.form.goto(this.dataset.open);
         } else {
@@ -920,7 +946,7 @@ $(function () {
     /*! 注册 data-modal 事件行为 */
     $.base.onEvent('click', '[data-modal]', function () {
         $.base.applyRuleValue(this, {open_type: 'modal'}, function (data, elem, dset) {
-            let defer = $.form.modal(dset.modal, data, dset.title || this.innerText || '编辑', undefined, undefined, undefined, dset.area || dset.width || '800px', dset.offset || 'auto', dset.full !== undefined);
+            let defer = $.form.modal(dset.modal, data, dset.title || this.innerText || '编辑', undefined, undefined, undefined, dset.area || dset.width || '800px', dset.offset || 'auto', dset.full !== undefined, dset.maxmin || false);
             defer.progress((type) => type === 'modal.close' && dset.closeRefresh && $.layTable.reload(dset.closeRefresh));
         });
     });
@@ -933,7 +959,7 @@ $(function () {
             let frame = dset.iframe + (dset.iframe.indexOf('?') > -1 ? '&' : '?') + $.param(data);
             $(this).attr('data-index', $.form.iframe(frame + '&' + $.param(data), name, area, dset.offset || 'auto', function () {
                 typeof dset.refresh !== 'undefined' && $.layTable.reload(dset.tableId || true);
-            }, undefined, dset.full !== undefined));
+            }, undefined, dset.full !== undefined, dset.maxmin || false));
         })
     });
 
@@ -959,15 +985,11 @@ $(function () {
 
     /*! 注册 data-copy 事件行为 */
     $.base.onEvent('click', '[data-copy]', function () {
-        let copy = this.dataset.copy || this.innerText;
-        if (window.clipboardData) {
-            window.clipboardData.setData('text', copy);
-            $.msg.tips('已复制到剪贴板！');
-        } else {
-            let $input = $('<textarea readonly></textarea>');
-            $input.css({position: 'fixed', top: '-500px'}).appendTo($body).val(copy).select();
-            $.msg.tips(document.execCommand('Copy') ? '已复制到剪贴板！' : '请使用鼠标操作复制！') && $input.remove();
-        }
+        layui.lay.clipboard.writeText({
+            text: this.dataset.copy || this.innerText,
+            done: () => $.msg.tips('已复制到剪贴板！'),
+            error: () => $.msg.tips('请使用鼠标复制！')
+        })
     });
 
     /*! 异步任务状态监听与展示 */
@@ -991,22 +1013,24 @@ $(function () {
     });
 
     /*! 注册 data-tips-hover 事件行为 */
-    $.base.onEvent('mouseenter', '[data-tips-image][data-tips-hover]', function () {
-        let img = new Image(), ele = $(this);
-        if ((img.src = this.dataset.tipsImage || this.dataset.lazySrc || this.src)) {
-            img.layopt = {anim: 5, time: 0, skin: 'layui-layer-image', isOutAnim: false, scrollbar: false};
+    $.base.onEvent('mouseenter', '[data-tips-image][data-tips-hover],[data-tips-image-hover]', function () {
+        let $el = $(this), img = new Image();
+        if ((img.src = this.dataset.tipsImage || this.dataset.lazySrc || this.src || this.value)) {
+            img.layopt = {anim: 5, tips: 3, time: 0, skin: 'layui-layer-image', isOutAnim: false, scrollbar: false};
             img.referrerPolicy = 'no-referrer', img.style.maxWidth = '260px', img.style.maxHeight = '260px';
-            ele.data('layidx', layer.tips(img.outerHTML, this, img.layopt)).off('mouseleave').on('mouseleave', function () {
-                layer.close(ele.data('layidx'));
+            $el.data('layidx', layer.tips(img.outerHTML, this, img.layopt)).off('mouseleave').on('mouseleave', function () {
+                $el.off('mousemove') && layer.close($el.data('layidx'));
             });
+            let $lay = $('#layui-layer' + $el.data('layidx'));
+            $el.on('mousemove', e => $lay.css({top: e.pageY + 20, left: e.pageX - 20}));
         }
     });
 
     /*! 注册 data-tips-image 事件行为 */
     $.base.onEvent('click', '[data-tips-image]', function (event) {
         (event.items = [], event.$imgs = $(this).parent().find('[data-tips-image]')).map(function () {
-            event.items.push({src: this.dataset.tipsImage || this.dataset.lazySrc || this.src});
-        }) && layer.photos({
+            (src => src && event.items.push({src: src}))(this.dataset.tipsImage || this.dataset.lazySrc || this.src || this.value);
+        }) && event.items.length > 0 && layer.photos({
             anim: 5, closeBtn: 1, photos: {start: event.$imgs.index(this), data: event.items}, tab: function (pic, $ele) {
                 $ele.find('img').attr('referrerpolicy', 'no-referrer');
                 $ele.find('.layui-layer-close').css({top: '20px', right: '20px', position: 'fixed'});

@@ -8,9 +8,11 @@
 
 ### 项目介绍
 
-**ThinkAdmin** 是一款遵循 **MIT** 协议免费开源的快速开发框架，基于最新版本 **ThinkPHP6** 的极简后台管理系统 ( 已兼容 **ThinkPHP8** )，在使用 **ThinkAdmin** 前请认真阅读[《免责声明》](https://doc.thinkadmin.top/disclaimer)并同意该声明。
+**ThinkAdmin** 是一款遵循 **MIT** 协议免费开源的快速开发框架，基于最新版本 **ThinkPHP6** 的极简后台管理系统 ( 已兼容 **ThinkPHP8** )，在使用 **ThinkAdmin** 前请认真阅读[《免责声明》](https://thinkadmin.top/disclaimer)并同意该声明。
 
-当前 **ThinkAdmin** 的最新版本为[ **v6.1** ](https://gitee.com/zoujingli/ThinkAdmin/tree/v6.1)，从这个版本开始正式进入插件时代，提供类似 **PaaS** 的组件升级更新服务，也可以本地化定制开发，基础组件及扩展插件统一使用 **Composer** 管理。**ThinkAdmin** 与传统 **ThinkPHP** 多应用模式无差别，用户可以自行开发自己的模块，此次升级可完美兼容 **ThinkAdmin v6.0** 应用，原 **ThinkAdmin v6.0** 只需安装 **ThinkPlugsAdmin** 组件即可升级到 **v6.1** 的插件模式。想要了解更多 **ThinkAdmin** 插件生态请阅读 [《ThinkAdmin 插件生态》](https://gitee.com/zoujingli/ThinkAdmin/blob/v6.1/plugin.md)
+当前 **ThinkAdmin** 的最新版本为[ **v6.1** ](https://gitee.com/zoujingli/ThinkAdmin/tree/v6.1)，从这个版本开始正式进入插件时代，提供类似 **PaaS** 的组件升级更新服务，也可以本地化定制开发，基础组件及扩展插件统一使用 **Composer** 管理。**ThinkAdmin** 与传统 **ThinkPHP** 多应用模式无差别，用户可以自行开发自己的模块，此次升级可完美兼容 **ThinkAdmin v6.0** 应用，原 **ThinkAdmin v6.0** 只需安装 **ThinkPlugsAdmin** 组件即可升级到 **v6.1** 的插件模式。
+
+[//]: # (想要了解更多 **ThinkAdmin** 插件生态请阅读 [《ThinkAdmin 插件生态》]&#40;https://thinkadmin.top/guide/plugin.html&#41;)
 
 **[查看 ThinkAdmin v6.1 详细介绍请切换至 v6.1 分支](https://gitee.com/zoujingli/ThinkAdmin/tree/v6.1)！！**
 
@@ -20,12 +22,12 @@
 
 使用 **ThinkAdmin** 需要掌握 **ThinkPHP**、**jQuery**、**LayUI**、**RequireJs** 等开发技能，后台 **UI** 界面基于最新版本的 **LayUI** 前端框架以及 **RequireJs** 组件加载方式，默认加载了所有 **LayUI** 的组件，框架中可以直接使用组件（独立页面需要注意 **js** 加载顺序哦），使用 **RequireJs** 加载插件，互联网上资源非常多，可自行下载进行二次扩展。目前后台大部分页面为单页程序，页面加载速度非常快速，也因此后台不再支持选项卡模式。
 
-我们致力于快速开发的底层框架，让项目开发变得更容易。框架提供完善的基础组件以及对应的 **API** 支持，基于此框架可以快速开发各种 **WEB** 应用。任何一个系统都不能完全满足所有的业务场景，**ThinkAdmin** 免费提供基础底层的功能，这里包括系统权限管理，系统存储配置，微信授权管理，以及其他常用功能集成等…… 因此 **ThinkAdmin** 也被大家定性为外包二开基线系统。从 **v6.1** 开始我们提供会员尊享组件和定制业务插件服务。目前已经有许多公司及个人在使用 **ThinkAdmin**，通过数据聚合统计已有 **5** 万多在线运行的项目。
+我们致力于快速开发的底层框架，让项目开发变得更容易。框架提供完善的基础组件以及对应的 **API** 支持，基于此框架可以快速开发各种 **WEB** 应用。任何一个系统都不能完全满足所有的业务场景，**ThinkAdmin** 免费提供基础底层的功能，这里包括系统权限管理，系统存储配置，微信授权管理，以及其他常用功能集成等…… 因此 **ThinkAdmin** 也被大家定性为外包二开基线系统。目前已经有许多公司及个人在使用 **ThinkAdmin**，通过数据聚合统计已有 **5** 万多在线运行的项目。
 
 #### 注意事项
 
 * **ThinkAdmin** 是基于国内最流行的 **ThinkPHP6** 框架开发，要求在不低于 **PHP 7.2.5** 的版本上运行，如果使用低版本的 **PHP** 可能会影响 **Composer** 依赖组件的安装，或将存在一定的安全隐患；
-* 运行环境必需开启 **PATHINFO** 并将对应的 **rewrite** 规则配置到站点才能访问，系统已不再支持 **ThinkPHP** 的 **URL** 兼容模式运行 ( 源于如何优雅地展示 )，可以阅读 **ThinkAdmin** 的文档[安装部署](https://doc.thinkadmin.top/install)章节；
+* 运行环境必需开启 **PATHINFO** 并将对应的 **rewrite** 规则配置到站点才能访问，系统已不再支持 **ThinkPHP** 的 **URL** 兼容模式运行 ( 源于如何优雅地展示 )，可以阅读 **ThinkAdmin** 的文档[安装部署](https://thinkadmin.top/guide/install.html)章节；
 * 代码仓库下载的文件不包含 **Composer** 组件的 **vendor** 目录，下载后需要执行 **composer install** 安装依赖组件，同时会触发执行 **php think migrate:run** 安装数据库 **Phinx** 脚本，如需切换数据库只需要先配置再执行指令即可完成初始化安装数据；
 * 为保持系统可持续在线升级，建议不要在 **app/admin**、**app/wechat** 、**public/static** 这三个目录创建或修改文件，可以自行创建其他模块再编写自己的业务代码，自定义样式及脚本可以放置在 **public/static/extra** 目录里面。
 * 系统是基于严格类型 **PHP** 新特性开发，务必使用专业的 **IDE** ( 如：**PhpStorm**、**NetBeans**、**VsCode**、**Eclipse for PHP** 等 ) 进行项目开发以达到更好的体验与更高的效率！
@@ -45,8 +47,13 @@ composer create-project zoujingli/thinkadmin
 ### 进入项目根目录
 cd thinkadmin
 
-### 数据库初始化并安装 
-### 默认使用 Sqlite 数据库，若使用其他数据库请修改配置后再执行
+### 数据库初始化安装 
+### 系统默认使用 Sqlite 数据库
+### 若使用其他数据库请修改 DB_ 相关的配置
+copy .env.example .env
+vi .env
+
+#### 执行数据库初始化安装
 php think migrate:run
 
 ### 安装微信管理模块
@@ -59,8 +66,9 @@ php think run --host 127.0.0.1
 
 **2. 通过源码安装：**（ 默认安装 admin、wechat 两个模块 ）
 
-如果需要安装演示系统的旧版本 **data** 模块代码，请跳转到
-https://gitee.com/zoujingli/think-plugs-data
+[//]: # (如果需要安装演示系统的旧版本 **data** 模块代码，请跳转到)
+
+[//]: # (https://gitee.com/zoujingli/think-plugs-data)
 
 ```shell
 ### 下载项目（ 需要在英文目录下面执行 ）
@@ -73,8 +81,13 @@ cd ThinkAdmin
 ### 安装项目依赖组件
 composer install --optimize-autoloader
 
-### 数据库初始化并安装
-### 默认使用 Sqlite 数据库，若使用其他数据库请修改配置后再执行
+### 数据库初始化安装 
+### 系统默认使用 Sqlite 数据库
+### 若使用其他数据库请修改 DB_ 相关的配置
+copy .env.example .env
+vi .env
+
+#### 执行数据库初始化安装
 php think migrate:run
 
 ### 开启PHP内置WEB服务
@@ -109,7 +122,7 @@ return [
 
 本地开发请使用 `php think run` 运行服务，访问 `http://127.0.0.1:8000` 即可进入项目。
 
-官方地址及开发指南：https://doc.thinkadmin.top ，如果实在无法解决问题，可以加入官方群免费交流。
+官方地址及开发指南：https://thinkadmin.top ，如果实在无法解决问题，可以加入官方群免费交流。
 
 **1.官方QQ交流群：** 513350915
 
@@ -117,7 +130,7 @@ return [
 
 **3.官方微信交流群**
 
-<img alt="" src="https://doc.thinkadmin.top/static/img/wx.png" width="250">
+<img alt="" src="https://thinkadmin.top/static/img/wx.png" width="250">
 
 ## 注解权限
 
@@ -145,13 +158,14 @@ public function index(){
 
 ## 代码仓库
 
-主仓库放置于 **Gitee**, **Github** 为镜像仓库。
+我们的代码仓库已移至 **Github**，而 **Gitee** 则仅作为国内镜像仓库，方便广大开发者获取和使用。若想提交 **PR** 或 **ISSUE** 请在 [ThinkAdminDeveloper](https://github.com/zoujingli/ThinkAdminDeveloper) 仓库进行操作，如果在其他仓库操作或提交问题将无法处理！
 
 部分代码来自互联网，若有异议可以联系作者进行删除。
 
 * 在线体验地址：https://v6.thinkadmin.top （账号和密码都是 admin ）
 * Gitee 仓库地址：https://gitee.com/zoujingli/ThinkAdmin
 * Github 仓库地址：https://github.com/zoujingli/ThinkAdmin
+* Gitcode 仓库地址：https://gitcode.com/ThinkAdmin/ThinkAdmin
 
 ## 框架指令
 

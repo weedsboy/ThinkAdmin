@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Wechat Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 Anyon <zoujingli@qq.com>
+// | 版权所有 2014~2024 Anyon <zoujingli@qq.com>
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -12,6 +12,8 @@
 // +----------------------------------------------------------------------
 // | gitee 代码仓库：https://gitee.com/zoujingli/think-plugs-wechat
 // +----------------------------------------------------------------------
+
+declare (strict_types=1);
 
 namespace app\wechat\controller\api;
 
@@ -111,9 +113,9 @@ class Push extends Controller
                 $this->encrypt = $this->wechat->isEncrypt();
                 $this->receive = $this->_arrayChangeKeyCase($this->wechat->getReceive());
             }
-            $this->fromOpenid = $this->receive['tousername'];
+            $this->fromOpenid = $this->receive['tousername'] ?? '';
             // 消息类型：text, event, image, voice, shortvideo, location, link
-            if (method_exists($this, ($method = $this->receive['msgtype']))) {
+            if (method_exists($this, ($method = $this->receive['msgtype'] ?? ''))) {
                 if (is_string($result = $this->$method())) return $result;
             } else {
                 $this->app->log->notice("The {$method} event pushed by wechat was not handled. from {$this->openid}");
@@ -121,7 +123,7 @@ class Push extends Controller
         } catch (\Exception $exception) {
             $this->app->log->error("{$exception->getFile()}:{$exception->getLine()} [{$exception->getCode()}] {$exception->getMessage()}");
         }
-        return 'success';
+        return $this->fromOpenid ? 'success' : '';
     }
 
     /**
@@ -328,5 +330,4 @@ class Push extends Controller
         }
         return $data;
     }
-
 }
